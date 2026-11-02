@@ -20,6 +20,7 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
         $this->add_control( 'menu', array( 'label' => 'WordPress menu', 'type' => \Elementor\Controls_Manager::SELECT, 'options' => $menus, 'default' => key( $menus ) ) );
         $this->add_control( 'label', array( 'label' => 'Accessible navigation label', 'type' => \Elementor\Controls_Manager::TEXT, 'default' => 'Main navigation' ) );
         $this->add_control( 'open_on', array( 'label' => 'Desktop dropdown trigger', 'type' => \Elementor\Controls_Manager::SELECT, 'options' => array( 'click' => 'Click', 'hover' => 'Hover and click' ), 'default' => 'click' ) );
+        $this->add_control( 'show_top_arrows', array( 'label' => 'Show top-level arrows', 'type' => \Elementor\Controls_Manager::SWITCHER, 'return_value' => 'yes', 'default' => 'yes', 'description' => 'Hide arrows beside top-level labels while retaining full-row submenu buttons and deeper navigation arrows.' ) );
         $this->add_control( 'collapse', array( 'label' => 'Collapse to mobile menu', 'type' => \Elementor\Controls_Manager::SELECT, 'default' => 'custom', 'options' => array( 'phone' => 'Phone only (767px and below)', 'tablet' => 'Tablet and phone (1024px and below)', 'custom' => 'Custom breakpoint', 'never' => 'Never — keep full menu on all devices' ), 'description' => 'Never keeps the full navigation visible on tablets and phones.' ) );
         $this->add_control( 'breakpoint', array( 'label' => 'Custom mobile breakpoint (px)', 'type' => \Elementor\Controls_Manager::NUMBER, 'min' => 320, 'max' => 1600, 'default' => 767, 'condition' => array( 'collapse' => 'custom' ) ) );
         $this->add_control( 'mobile_label', array( 'label' => 'Mobile toggle label', 'type' => \Elementor\Controls_Manager::TEXT, 'default' => 'Menu' ) );
@@ -116,7 +117,8 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
         }
         echo '<span class="cdn-label">' . esc_html( $view ? sprintf( __( 'View %s', 'calico-drilldown-navigation' ), $item->title ) : $item->title ) . '</span></span>';
         if ( $has_children ) {
-            $this->icon( $s['forward_icon'] ?? array(), $top ? '⌄' : '›' ); echo '</button>';
+            if ( ! $top || 'yes' === ( $s['show_top_arrows'] ?? 'yes' ) ) { $this->icon( $s['forward_icon'] ?? array(), $top ? '⌄' : '›' ); }
+            echo '</button>';
         } else { echo '</a>'; }
         echo '</div>';
     }
