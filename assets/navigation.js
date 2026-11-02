@@ -40,7 +40,7 @@
       state.viewport.style.height = `${panel.getBoundingClientRect().height}px`;
       // Keep a dropdown inside the viewport even when the header sits near an edge.
       state.dropdown.style.marginInlineStart = '';
-      if (!isMobile()) {
+      if (!isMobile() && !nav.classList.contains('cdn-is-vertical')) {
         const rect = state.dropdown.getBoundingClientRect();
         const shift = Math.max(12 - rect.left, Math.min(0, innerWidth - 12 - rect.right));
         state.dropdown.style.marginInlineStart = `${nav.dir === 'rtl' ? -shift : shift}px`;
@@ -143,6 +143,7 @@
     function responsive() {
       const wasMobile = nav.classList.contains('cdn-is-mobile');
       nav.classList.toggle('cdn-is-mobile', isMobile());
+      nav.classList.toggle('cdn-is-vertical', getComputedStyle(root).flexDirection === 'column');
       if (wasMobile !== isMobile()) {
         if (nav.contains(document.activeElement)) {
           (isMobile() ? mobile : root.querySelector('a,button'))?.focus();
@@ -152,7 +153,8 @@
       states.forEach(state => resize(state));
     }
     listen(window, 'resize', responsive);
-    const observer = new ResizeObserver(() => states.forEach(state => resize(state)));
+    const observer = new ResizeObserver(responsive);
+    observer.observe(root);
     states.forEach(state => state.panels.forEach(panel => observer.observe(panel)));
     // Elementor replaces widget DOM when settings change. Release document/window listeners.
     const cleanup = new MutationObserver(() => {
