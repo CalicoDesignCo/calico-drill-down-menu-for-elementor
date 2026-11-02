@@ -52,6 +52,13 @@ Deactivate the plugin to stop its widget and updater. WordPress menus, media, an
 
 ## Changelog
 
+### 1.2.1
+
+- Initialize popup menus when attached, including cloned and reopened Elementor widgets.
+- Smooth vertical/mobile expand and collapse, controlled by the existing animation duration and reduced-motion preference.
+- Regression checks cover detached popup rendering, copied ready attributes, reopen, and interrupted animation.
+
+
 ### 1.2.0
 
 - Add responsive Horizontal / Stacked vertical menu layout under Menu & behavior.
