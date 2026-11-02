@@ -1,8 +1,10 @@
 /* Calico Drilldown Navigation. Native disclosure navigation; no application-menu roles. */
 (() => {
   'use strict';
+  // DOM attributes survive Elementor's popup clones; event listeners do not.
+  const instances = new WeakMap();
   function init(nav) {
-    if (nav.dataset.cdnReady) return;
+    if (!nav.isConnected || instances.has(nav)) return;
     nav.dataset.cdnReady = 'true';
     nav.classList.add('cdn-enhanced');
     nav.dir = getComputedStyle(nav).direction;
@@ -13,6 +15,20 @@
     const states = new Map();
     const controller = new AbortController();
     const listen = (el, event, fn) => el.addEventListener(event, fn, {signal: controller.signal});
+    function animateDropdown(state, opening, finish = () => {}) {
+      state.animation?.cancel();
+      state.animation = null;
+      const inline = isMobile() || nav.classList.contains('cdn-is-vertical');
+      const duration = parseFloat(getComputedStyle(nav).getPropertyValue('--cdn-duration')) || 260;
+      if (!inline || matchMedia('(prefers-reduced-motion: reduce)').matches || !state.dropdown.animate) { finish(); return; }
+      const height = state.dropdown.getBoundingClientRect().height;
+      const margin = getComputedStyle(state.dropdown).marginTop;
+      const collapsed = {height: '0px', opacity: 0, marginTop: '0px', overflow: 'hidden'};
+      const expanded = {height: `${height}px`, opacity: 1, marginTop: margin, overflow: 'hidden'};
+      const animation = state.dropdown.animate(opening ? [collapsed, expanded] : [expanded, collapsed], {duration, easing: 'ease'});
+      state.animation = animation;
+      animation.onfinish = () => { if (state.animation === animation) { state.animation = null; finish(); } };
+    }
     const panelFocus = panel => panel.querySelector('button,a');
     function focusPanel(state, panel) {
       state.movingFocus = true;
@@ -59,17 +75,30 @@
       if (focus) focusPanel(state, active);
     }
     function close(state, focus = false) {
+      const wasOpen = state.li.classList.contains('cdn-open');
+      if (wasOpen) state.li.classList.add('cdn-closing');
       state.li.classList.remove('cdn-open');
       state.li.querySelectorAll('[aria-expanded]').forEach(el => el.setAttribute('aria-expanded', 'false'));
-      state.panels.forEach(panel => { panel.classList.remove('cdn-active', 'cdn-past'); panel.inert = true; panel.setAttribute('aria-hidden', 'true'); });
+      state.panels.forEach(panel => { panel.inert = true; panel.setAttribute('aria-hidden', 'true'); });
       state.stack = [{panel: state.panels[0], trigger: state.toggle}];
+      const finish = () => {
+        state.li.classList.remove('cdn-closing');
+        state.panels.forEach(panel => panel.classList.remove('cdn-active', 'cdn-past'));
+      };
+      if (wasOpen) animateDropdown(state, false, finish);
+      else if (!state.li.classList.contains('cdn-closing')) finish();
       if (focus) state.toggle.focus();
     }
     function open(state, focus = false) {
+      const wasOpen = state.li.classList.contains('cdn-open');
+      state.animation?.cancel();
+      state.animation = null;
+      state.li.classList.remove('cdn-closing');
       states.forEach(other => { if (other !== state) close(other); });
       state.li.classList.add('cdn-open');
       state.toggle.setAttribute('aria-expanded', 'true');
       activate(state, focus);
+      if (!wasOpen) animateDropdown(state, true);
     }
     function back(state) {
       if (state.stack.length < 2) { close(state, true); return; }
@@ -156,14 +185,28 @@
     const observer = new ResizeObserver(responsive);
     observer.observe(root);
     states.forEach(state => state.panels.forEach(panel => observer.observe(panel)));
-    // Elementor replaces widget DOM when settings change. Release document/window listeners.
-    const cleanup = new MutationObserver(() => {
-      if (!nav.isConnected) { controller.abort(); observer.disconnect(); cleanup.disconnect(); }
-    });
-    cleanup.observe(document.documentElement, {childList: true, subtree: true});
+    instances.set(nav, {refresh: responsive, destroy() {
+      controller.abort(); observer.disconnect();
+      states.forEach(state => { state.animation?.cancel(); close(state); state.animation?.cancel(); state.li.classList.remove('cdn-closing'); });
+      instances.delete(nav); delete nav.dataset.cdnReady;
+    }});
     responsive();
   }
-  const scan = scope => scope.querySelectorAll('.cdn-nav').forEach(init);
+  const eachNav = (scope, callback) => {
+    if (scope.nodeType !== 1 && scope.nodeType !== 9) return;
+    if (scope.matches?.('.cdn-nav')) callback(scope);
+    scope.querySelectorAll('.cdn-nav').forEach(callback);
+  };
+  const scan = scope => eachNav(scope, nav => { init(nav); instances.get(nav)?.refresh(); });
+  // Popups may initialize while detached, reuse a removed node, or clone a ready
+  // widget. Observe attachment rather than trusting copied ready attributes.
+  const lifecycle = new MutationObserver(records => {
+    records.forEach(record => record.removedNodes.forEach(node => eachNav(node, nav => {
+      if (!nav.isConnected) instances.get(nav)?.destroy();
+    })));
+    records.forEach(record => record.addedNodes.forEach(node => scan(node)));
+  });
+  lifecycle.observe(document.documentElement, {childList: true, subtree: true});
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => scan(document));
   else scan(document);
   let registered = false;
@@ -173,7 +216,10 @@
     window.elementorFrontend.hooks.addAction('frontend/element_ready/calico-drilldown-navigation.default', scope => scan(scope[0]));
   }
   // Elementor emits its initialization event through jQuery, including the editor iframe.
-  if (window.jQuery) window.jQuery(window).on('elementor/frontend/init', registerElementor);
+  if (window.jQuery) {
+    window.jQuery(window).on('elementor/frontend/init', registerElementor);
+    window.jQuery(document).on('elementor/popup/show', () => scan(document));
+  }
   else window.addEventListener('elementor/frontend/init', registerElementor);
   registerElementor();
 })();

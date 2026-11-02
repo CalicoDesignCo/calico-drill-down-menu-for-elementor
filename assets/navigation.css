@@ -29,6 +29,7 @@
 .cdn-enhanced .cdn-dropdown{display:none;position:absolute;inset-inline-start:0;top:calc(100% + var(--cdn-offset))}
 .cdn-enhanced[data-align=end] .cdn-dropdown{inset-inline-start:auto;inset-inline-end:0}
 .cdn-enhanced .cdn-open>.cdn-dropdown{display:block}
+.cdn-enhanced .cdn-closing>.cdn-dropdown{display:block;pointer-events:none}
 .cdn-enhanced .cdn-viewport{position:relative;overflow:hidden;border-radius:inherit;height:auto;transition:height var(--cdn-duration) ease}
 .cdn-enhanced .cdn-panel{position:absolute;inset:0 0 auto;visibility:hidden;transform:translateX(100%);transition:transform var(--cdn-duration) ease,visibility 0s var(--cdn-duration);width:100%}
 .cdn-enhanced .cdn-panel.cdn-active{visibility:visible;transform:translateX(0);transition:transform var(--cdn-duration) ease}
