@@ -153,7 +153,10 @@
       listen(li, 'focusout', event => {
         // Making the outgoing panel inert generates a blur with no destination.
         // That is an internal transition, not keyboard navigation out of the menu.
-        if (!event.relatedTarget || state.movingFocus) return;
+        // A sibling trigger receives focus on pointerdown, before click. Closing
+        // here collapses the stack under the pointer and cancels that click.
+        // Let the sibling's click open it and close this menu together.
+        if (!event.relatedTarget || state.movingFocus || nav.contains(event.relatedTarget)) return;
         setTimeout(() => { if (nav.isConnected && !state.movingFocus && !li.contains(document.activeElement)) close(state); }, 0);
       });
     });
