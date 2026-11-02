@@ -9,6 +9,7 @@ A WordPress navigation widget for Elementor Free or Pro. Deeper menu levels slid
 - Assign icons, images, or both to menu items at any depth.
 - Style typography, normal/hover/active colors, spacing, backgrounds, borders, rounded corners, shadows, icons, images, and arrows in Elementor.
 - Collapse on phones, tablets and phones, a custom breakpoint, or never.
+- Optionally hide top-level arrows while keeping submenu navigation arrows.
 - Keyboard navigation, focus restoration, reduced-motion support, and right-to-left layouts.
 - Use multiple widgets with separate menus and styling.
 - GitHub-backed WordPress updates without a GitHub token.
@@ -49,6 +50,12 @@ PHP 7.4/8.3 isolated render checks and local Chrome interaction checks cover fiv
 Deactivate the plugin to stop its widget and updater. WordPress menus, media, and Elementor settings remain owned by WordPress/Elementor; the plugin creates no custom tables. Reinstall the prior saved package if rollback is needed.
 
 ## Changelog
+
+### 1.1.0
+
+- Prevent dropdown closure during deeper-level focus transitions in sticky headers.
+- Keep hover-open menus open when the top-level label is clicked.
+- Add Show top-level arrows control.
 
 ### 1.0.0
 

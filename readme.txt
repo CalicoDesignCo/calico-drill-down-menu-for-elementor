@@ -4,7 +4,7 @@ Tags: elementor, navigation, menu, dropdown, icons
 Requires at least: 6.5
 Requires PHP: 7.4
 Requires Plugins: elementor
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -57,6 +57,11 @@ No. Hierarchy, labels, order, destinations, new-tab targets, and link relationsh
 Yes. WordPress checks stable releases from https://github.com/CalicoDesignCo/calico-drill-down-menu-for-elementor without a GitHub token. Use Dashboard > Updates > Check again. Drafts, prereleases and downgrades are ignored. Upload this updater-enabled release manually once if you installed local 0.1.0 or 0.2.0. Automatic-update scheduling stays under the administrator's control.
 
 == Changelog ==
+
+= 1.1.0 =
+* Fix submenu focus transitions that could close dropdowns in sticky headers.
+* Preserve hover-open dropdowns when their top-level button is clicked.
+* Add Show top-level arrows switch; deeper arrows remain available.
 
 = 1.0.0 =
 * First GitHub release as Calico Drill Down Menu for Elementor, with native WordPress update support.
