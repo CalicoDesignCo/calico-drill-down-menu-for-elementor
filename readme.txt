@@ -60,7 +60,7 @@ Yes. WordPress checks stable releases from https://github.com/CalicoDesignCo/cal
 == Changelog ==
 
 = 1.2.3 =
-* Give ordinary menu links the same 44px minimum height as submenu buttons, preventing uneven rows when padding is reduced.
+* Remove the fixed minimum height from full-row submenu buttons so custom padding controls link and button row heights consistently, including zero padding.
 
 = 1.2.2 =
 * Prevent global Elementor button backgrounds from covering menu-row normal, hover, and active colors.

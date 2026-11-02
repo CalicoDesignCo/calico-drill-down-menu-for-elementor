@@ -54,7 +54,7 @@ Deactivate the plugin to stop its widget and updater. WordPress menus, media, an
 
 ### 1.2.3
 
-- Apply the same 44px minimum height to ordinary links and parent submenu buttons. This keeps compact vertical menu rows consistent while preserving configured gaps and padding.
+- Let custom padding determine ordinary link and parent-button row heights equally, including zero padding. Remove the fixed parent-button minimum; preserve configured row gaps.
 
 
 ### 1.2.2
