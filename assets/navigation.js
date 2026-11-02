@@ -14,6 +14,26 @@
     const controller = new AbortController();
     const listen = (el, event, fn) => el.addEventListener(event, fn, {signal: controller.signal});
     const panelFocus = panel => panel.querySelector('button,a');
+    function focusPanel(state, panel) {
+      state.movingFocus = true;
+      panelFocus(panel)?.focus({preventScroll: true});
+      // In a sticky header the incoming panel may still be visually hidden until
+      // the browser applies its new styles. Wait one frame before moving focus.
+      requestAnimationFrame(() => {
+        if (nav.isConnected && state.li.classList.contains('cdn-open') && state.stack[state.stack.length - 1].panel === panel) {
+          if (document.activeElement === document.body) panelFocus(panel)?.focus({preventScroll: true});
+        }
+        state.movingFocus = false;
+      });
+      // Some host styles defer visibility for the full slide. Recover focus at
+      // its end only if it is still on body; never steal a visitor's new focus.
+      const duration = parseFloat(getComputedStyle(nav).getPropertyValue('--cdn-duration')) || 260;
+      setTimeout(() => {
+        if (nav.isConnected && state.li.classList.contains('cdn-open') && state.stack[state.stack.length - 1].panel === panel && document.activeElement === document.body) {
+          panelFocus(panel)?.focus({preventScroll: true});
+        }
+      }, duration + 32);
+    }
     function resize(state) {
       if (!state.li.classList.contains('cdn-open')) return;
       const panel = state.stack[state.stack.length - 1].panel;
@@ -36,7 +56,7 @@
         panel.setAttribute('aria-hidden', String(!on));
       });
       resize(state);
-      if (focus) panelFocus(active)?.focus({preventScroll: true});
+      if (focus) focusPanel(state, active);
     }
     function close(state, focus = false) {
       state.li.classList.remove('cdn-open');
@@ -66,7 +86,12 @@
       const state = {li, dropdown, toggle, panels, viewport: dropdown.querySelector('.cdn-viewport'), stack: [{panel: panels[0], trigger: toggle}]};
       states.set(li, state);
       close(state);
-      listen(toggle, 'click', () => li.classList.contains('cdn-open') ? close(state) : open(state));
+      listen(toggle, 'click', event => {
+        // A mouse hover already opens the dropdown. Its following click must
+        // keep it open instead of immediately toggling it closed.
+        if (!isMobile() && nav.dataset.trigger === 'hover' && event.detail > 0 && event.pointerType !== 'touch') open(state);
+        else li.classList.contains('cdn-open') ? close(state) : open(state);
+      });
       let hoverTimer;
       listen(li, 'pointerenter', event => {
         clearTimeout(hoverTimer);
@@ -96,7 +121,12 @@
         else if (event.key === next && event.target.matches('.cdn-next:not([data-root-toggle])')) { event.preventDefault(); event.target.click(); }
         else if (event.key === prev && state.stack.length > 1) { event.preventDefault(); back(state); }
       });
-      listen(li, 'focusout', () => setTimeout(() => { if (nav.isConnected && !li.contains(document.activeElement)) close(state); }, 0));
+      listen(li, 'focusout', event => {
+        // Making the outgoing panel inert generates a blur with no destination.
+        // That is an internal transition, not keyboard navigation out of the menu.
+        if (!event.relatedTarget || state.movingFocus) return;
+        setTimeout(() => { if (nav.isConnected && !state.movingFocus && !li.contains(document.activeElement)) close(state); }, 0);
+      });
     });
     function setMobile(open) {
       nav.classList.toggle('cdn-mobile-open', open);
