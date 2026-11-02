@@ -52,6 +52,11 @@ Deactivate the plugin to stop its widget and updater. WordPress menus, media, an
 
 ## Changelog
 
+### 1.2.3
+
+- Apply the same 44px minimum height to ordinary links and parent submenu buttons. This keeps compact vertical menu rows consistent while preserving configured gaps and padding.
+
+
 ### 1.2.2
 
 - Keep menu-row backgrounds visible beneath parent buttons when Elementor global button styles are configured.
