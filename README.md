@@ -52,6 +52,11 @@ Deactivate the plugin to stop its widget and updater. WordPress menus, media, an
 
 ## Changelog
 
+### 1.2.4
+
+- Switch stacked top-level submenus in one click, including from deeper panels. Preserve the current panel until the sibling click opens the new one and closes the old one together.
+
+
 ### 1.2.3
 
 - Let custom padding determine ordinary link and parent-button row heights equally, including zero padding. Remove the fixed parent-button minimum; preserve configured row gaps.
