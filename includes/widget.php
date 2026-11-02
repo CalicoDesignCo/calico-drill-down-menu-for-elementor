@@ -19,6 +19,7 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
         $this->start_controls_section( 'content', array( 'label' => 'Menu & behavior' ) );
         $this->add_control( 'menu', array( 'label' => 'WordPress menu', 'type' => \Elementor\Controls_Manager::SELECT, 'options' => $menus, 'default' => key( $menus ) ) );
         $this->add_control( 'label', array( 'label' => 'Accessible navigation label', 'type' => \Elementor\Controls_Manager::TEXT, 'default' => 'Main navigation' ) );
+        $this->add_responsive_control( 'menu_layout', array( 'label' => 'Menu layout', 'type' => \Elementor\Controls_Manager::SELECT, 'default' => 'row', 'options' => array( 'row' => 'Horizontal', 'column' => 'Stacked vertical' ), 'render_type' => 'template', 'selectors' => array( '{{WRAPPER}} .cdn-nav' => '--cdn-direction: {{VALUE}};' ), 'description' => 'Vertical menus stack the main links and expand the dropdown beneath its parent. Deeper levels keep sliding within that panel.' ) );
         $this->add_control( 'open_on', array( 'label' => 'Desktop dropdown trigger', 'type' => \Elementor\Controls_Manager::SELECT, 'options' => array( 'click' => 'Click', 'hover' => 'Hover and click' ), 'default' => 'click' ) );
         $this->add_control( 'show_top_arrows', array( 'label' => 'Show top-level arrows', 'type' => \Elementor\Controls_Manager::SWITCHER, 'return_value' => 'yes', 'default' => 'yes', 'description' => 'Hide arrows beside top-level labels while retaining full-row submenu buttons and deeper navigation arrows.' ) );
         $this->add_control( 'collapse', array( 'label' => 'Collapse to mobile menu', 'type' => \Elementor\Controls_Manager::SELECT, 'default' => 'custom', 'options' => array( 'phone' => 'Phone only (767px and below)', 'tablet' => 'Tablet and phone (1024px and below)', 'custom' => 'Custom breakpoint', 'never' => 'Never — keep full menu on all devices' ), 'description' => 'Never keeps the full navigation visible on tablets and phones.' ) );
@@ -133,7 +134,8 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
         $prefix = wp_unique_id( 'cdn-' . $this->get_id() . '-' ) . '-';
         $collapse = $s['collapse'] ?? 'custom';
         $breakpoint = 'phone' === $collapse ? 767 : ( 'tablet' === $collapse ? 1024 : max( 320, min( 1600, absint( $s['breakpoint'] ?? 767 ) ) ) );
-        echo '<nav class="cdn-nav" aria-label="' . esc_attr( $s['label'] ?: 'Main navigation' ) . '" data-collapse="' . esc_attr( $collapse ) . '" data-breakpoint="' . $breakpoint . '" data-trigger="' . esc_attr( $s['open_on'] ) . '" data-align="' . esc_attr( $s['panel_align'] ) . '">';
+        $layout = 'column' === ( $s['menu_layout'] ?? 'row' ) ? 'column' : 'row';
+        echo '<nav class="cdn-nav" data-layout="' . esc_attr( $layout ) . '" aria-label="' . esc_attr( $s['label'] ?: 'Main navigation' ) . '" data-collapse="' . esc_attr( $collapse ) . '" data-breakpoint="' . $breakpoint . '" data-trigger="' . esc_attr( $s['open_on'] ) . '" data-align="' . esc_attr( $s['panel_align'] ) . '">';
         echo '<button class="cdn-mobile-toggle" type="button" aria-expanded="false" aria-controls="' . esc_attr( $prefix . 'root' ) . '">';
         $this->icon( $s['toggle_icon'] ?? array(), '☰' ); echo '<span>' . esc_html( $s['mobile_label'] ?: 'Menu' ) . '</span></button>';
         echo '<ul class="cdn-root" id="' . esc_attr( $prefix . 'root' ) . '">';
