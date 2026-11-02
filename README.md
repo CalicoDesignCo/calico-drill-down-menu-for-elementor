@@ -52,6 +52,12 @@ Deactivate the plugin to stop its widget and updater. WordPress menus, media, an
 
 ## Changelog
 
+### 1.2.2
+
+- Keep menu-row backgrounds visible beneath parent buttons when Elementor global button styles are configured.
+- Verify normal/hover backgrounds and hover/focus text on top-level buttons and links under conflicting kit styles.
+
+
 ### 1.2.1
 
 - Initialize popup menus when attached, including cloned and reopened Elementor widgets.
