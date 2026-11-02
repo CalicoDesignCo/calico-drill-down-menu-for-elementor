@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/CalicoDesignCo/calico-drill-down-menu-for-elementor
  * Update URI: https://github.com/CalicoDesignCo/calico-drill-down-menu-for-elementor
  * Description: WordPress menus with icons and sliding, accessible drill-down dropdowns.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Requires at least: 6.5
  * Requires PHP: 7.4
  * Requires Plugins: elementor
@@ -13,7 +13,7 @@
  * License: GPL-2.0-or-later
  */
 if ( ! defined( 'ABSPATH' ) ) { exit; }
-define( 'CDN_NAV_VERSION', '1.1.0' );
+define( 'CDN_NAV_VERSION', '1.2.0' );
 require_once __DIR__ . '/includes/class-cdn-nav-updater.php';
 CDN_Nav_Updater::register( __FILE__ );
 function cdn_nav_assets() {

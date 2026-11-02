@@ -4,7 +4,7 @@ Tags: elementor, navigation, menu, dropdown, icons
 Requires at least: 6.5
 Requires PHP: 7.4
 Requires Plugins: elementor
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,9 +32,10 @@ Display an existing WordPress navigation menu using Elementor Free or Pro. Click
 3. Create or edit your menu under Appearance > Menus. Indent items to create submenu levels. On a block theme, you may need to open /wp-admin/nav-menus.php to create a classic menu.
 4. Edit a page or header with Elementor and add Calico Drill Down Menu for Elementor.
 5. Under Menu & behavior, select the WordPress menu and set the dropdown trigger. Set Collapse to mobile menu to Phone only, Tablet and phone, Custom breakpoint, or Never. Choose Never to keep full navigation on both tablets and phones.
-6. Under Link icons & images, add an entry, choose the menu item, and choose an icon, image, or both. Menu-item IDs distinguish links with the same label. Reopen Elementor after creating new menu items so the selector refreshes.
-7. Use the Style tab for appearance and responsive overrides. Each icon/image assignment applies only to this widget instance.
-8. Preview desktop and mobile and save your page/template.
+6. Set Menu layout to Horizontal or Stacked vertical. Use the device icon for tablet/phone overrides. Vertical dropdowns expand beneath their parent and use the menu width. Choose Never under Collapse to mobile menu to keep the stack visible on small screens.
+7. Under Link icons & images, add an entry, choose the menu item, and choose an icon, image, or both. Menu-item IDs distinguish links with the same label. Reopen Elementor after creating new menu items so the selector refreshes.
+8. Use the Style tab for appearance and responsive overrides. Each icon/image assignment applies only to this widget instance.
+9. Preview desktop and mobile and save your page/template.
 
 == Frequently Asked Questions ==
 
@@ -57,6 +58,10 @@ No. Hierarchy, labels, order, destinations, new-tab targets, and link relationsh
 Yes. WordPress checks stable releases from https://github.com/CalicoDesignCo/calico-drill-down-menu-for-elementor without a GitHub token. Use Dashboard > Updates > Check again. Drafts, prereleases and downgrades are ignored. Upload this updater-enabled release manually once if you installed local 0.1.0 or 0.2.0. Automatic-update scheduling stays under the administrator's control.
 
 == Changelog ==
+
+= 1.2.0 =
+* Add responsive horizontal / stacked vertical menu layout.
+* Vertical dropdowns expand below the parent within the menu width; deeper levels retain drill-down navigation.
 
 = 1.1.0 =
 * Fix submenu focus transitions that could close dropdowns in sticky headers.

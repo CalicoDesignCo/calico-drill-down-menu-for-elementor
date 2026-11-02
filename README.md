@@ -8,6 +8,7 @@ A WordPress navigation widget for Elementor Free or Pro. Deeper menu levels slid
 - A **View [parent]** link keeps the parent's original page accessible.
 - Assign icons, images, or both to menu items at any depth.
 - Style typography, normal/hover/active colors, spacing, backgrounds, borders, rounded corners, shadows, icons, images, and arrows in Elementor.
+- Choose horizontal or stacked vertical layout with responsive device overrides.
 - Collapse on phones, tablets and phones, a custom breakpoint, or never.
 - Optionally hide top-level arrows while keeping submenu navigation arrows.
 - Keyboard navigation, focus restoration, reduced-motion support, and right-to-left layouts.
@@ -50,6 +51,11 @@ PHP 7.4/8.3 isolated render checks and local Chrome interaction checks cover fiv
 Deactivate the plugin to stop its widget and updater. WordPress menus, media, and Elementor settings remain owned by WordPress/Elementor; the plugin creates no custom tables. Reinstall the prior saved package if rollback is needed.
 
 ## Changelog
+
+### 1.2.0
+
+- Add responsive Horizontal / Stacked vertical menu layout under Menu & behavior.
+- Vertical dropdowns expand beneath the parent at the menu width; deeper levels retain sliding navigation.
 
 ### 1.1.0
 
