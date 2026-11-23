@@ -13,6 +13,7 @@ A WordPress navigation widget for Elementor Free or Pro. Deeper menu levels slid
 - Optionally hide top-level arrows while keeping submenu navigation arrows.
 - Keyboard navigation, focus restoration, reduced-motion support, and right-to-left layouts.
 - Use multiple widgets with separate menus and styling.
+- Optional normal/hover color palettes at page top and after a configurable scroll distance, for transparent headers.
 - GitHub-backed WordPress updates without a GitHub token.
 
 ## Download and install
@@ -42,6 +43,8 @@ Parent rows are submenu buttons; leaf items and View links are ordinary links. T
 
 Set **Collapse to mobile menu → Never** to retain full navigation on tablets and phones. Links may wrap to fit the available header width. A parent header with `overflow: hidden` or `clip` can clip dropdowns; use visible overflow and suitable stacking.
 
+Enable **Style → Scroll colors → Change colors on scroll**, set **Switch after (px)**, and configure the **At top** and **After scrolling** tabs. This overrides top-level active text/icon colors while enabled. Header transparency and sticky positioning are configured in the header template.
+
 ## Verification and limits
 
 PHP 7.4/8.3 isolated render checks and local Chrome interaction checks cover five menu levels, parent-label navigation, View links, focus, keyboard behavior, multiple instances, mobile breakpoint boundaries, never-collapse layouts, and the Elementor replacement-widget hook. Updater tests cover stable release parsing, pinned assets, version comparisons, caching, and safe failures. These checks do not establish compatibility with every theme, screen reader, or physical device.
@@ -51,6 +54,13 @@ PHP 7.4/8.3 isolated render checks and local Chrome interaction checks cover fiv
 Deactivate the plugin to stop its widget and updater. WordPress menus, media, and Elementor settings remain owned by WordPress/Elementor; the plugin creates no custom tables. Reinstall the prior saved package if rollback is needed.
 
 ## Changelog
+
+### 1.3.0
+
+- Add Style → Scroll colors: optional top/after-scroll palettes and pixel threshold.
+- Set normal/hover text colors and optional backgrounds. Top-level icons/arrows and the mobile toggle follow the palette; dropdown styling remains separate.
+- Off by default. Returning above the threshold restores the top palette. Zero switches on leaving page top.
+
 
 ### 1.2.4
 

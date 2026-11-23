@@ -4,7 +4,7 @@ Tags: elementor, navigation, menu, dropdown, icons
 Requires at least: 6.5
 Requires PHP: 7.4
 Requires Plugins: elementor
-Stable tag: 1.2.4
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,6 +39,10 @@ Display an existing WordPress navigation menu using Elementor Free or Pro. Click
 
 == Frequently Asked Questions ==
 
+= How do I use different colors over a transparent header? =
+Enable Style > Scroll colors > Change colors on scroll. Set Switch after (px), then choose normal/hover text colors and optional backgrounds in At top and After scrolling. These palettes override top-level current-link and icon/arrow colors while enabled. Dropdown panels keep their own styles. The mobile toggle follows the same palette. At a zero threshold, colors switch as soon as the page leaves the top. This control changes menu colors; configure header transparency and sticky behavior in your header template.
+
+
 = Do parent labels still link to their pages? =
 Clicking a parent label opens its submenu. Use View [parent] inside that submenu to visit the parent's page. Leaf items still link directly. Empty URLs and a standalone # do not get View links. New-tab targets and link relationships are retained on the View link.
 
@@ -58,6 +62,10 @@ No. Hierarchy, labels, order, destinations, new-tab targets, and link relationsh
 Yes. WordPress checks stable releases from https://github.com/CalicoDesignCo/calico-drill-down-menu-for-elementor without a GitHub token. Use Dashboard > Updates > Check again. Drafts, prereleases and downgrades are ignored. Upload this updater-enabled release manually once if you installed local 0.1.0 or 0.2.0. Automatic-update scheduling stays under the administrator's control.
 
 == Changelog ==
+
+= 1.3.0 =
+* Optional scroll colors for top-level links, icons/arrows and the mobile toggle, with a configurable pixel threshold.
+* Separate normal/hover text colors and optional backgrounds at the top and after scrolling. Disabled by default; dropdown styling is retained.
 
 = 1.2.4 =
 * Switch stacked top-level menus with one click; prevent focus changes from collapsing the old panel before the new button receives its click.
