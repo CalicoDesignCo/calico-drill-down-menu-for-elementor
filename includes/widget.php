@@ -69,6 +69,24 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
             }
             $this->end_controls_tabs(); $this->end_controls_section();
         }
+        $this->start_controls_section( 'scroll_style', array( 'label' => 'Scroll colors', 'tab' => \Elementor\Controls_Manager::TAB_STYLE ) );
+        $this->add_control( 'scroll_colors', array( 'label' => 'Change colors on scroll', 'type' => \Elementor\Controls_Manager::SWITCHER, 'return_value' => 'yes', 'default' => '', 'render_type' => 'template', 'description' => 'Change top-level link, icon, arrow and mobile-toggle colors for transparent headers. Dropdown panels retain their own styling.' ) );
+        $this->add_control( 'scroll_threshold', array( 'label' => 'Switch after (px)', 'type' => \Elementor\Controls_Manager::NUMBER, 'min' => 0, 'max' => 100000, 'default' => 80, 'render_type' => 'template', 'condition' => array( 'scroll_colors' => 'yes' ) ) );
+        $this->start_controls_tabs( 'scroll_color_states' );
+        foreach ( array( 'top' => array( 'At top', ':not(.cdn-scrolled)', '#FFFFFF', '#E5E7EB' ), 'scrolled' => array( 'After scrolling', '.cdn-scrolled', '#202632', '#174BBB' ) ) as $phase => $config ) {
+            $this->start_controls_tab( 'scroll_phase_' . $phase, array( 'label' => $config[0], 'condition' => array( 'scroll_colors' => 'yes' ) ) );
+            foreach ( array( 'normal' => '', 'hover' => ':is(:hover,:focus-within)' ) as $state => $suffix ) {
+                $base = '{{WRAPPER}} .cdn-nav[data-scroll-colors="yes"]' . $config[1];
+                foreach ( array( 'color' => 'text color', 'background-color' => 'background' ) as $property => $label ) {
+                    $args = array( 'label' => ucfirst( $state ) . ' ' . $label, 'type' => \Elementor\Controls_Manager::COLOR, 'condition' => array( 'scroll_colors' => 'yes' ), 'selectors' => array( $base . ' .cdn-root > li > .cdn-row' . $suffix => $property . ': {{VALUE}} !important;', $base . ' .cdn-mobile-toggle' . ( 'hover' === $state ? ':is(:hover,:focus-visible)' : '' ) => $property . ': {{VALUE}} !important;' ) );
+                    if ( 'color' === $property ) { $args['default'] = $config[ 'hover' === $state ? 3 : 2 ]; }
+                    $this->add_control( 'scroll_' . $phase . '_' . $state . '_' . str_replace( '-', '_', $property ), $args );
+                }
+            }
+            $this->end_controls_tab();
+        }
+        $this->end_controls_tabs();
+        $this->end_controls_section();
         $this->start_controls_section( 'icon_style', array( 'label' => 'Icons & arrows', 'tab' => \Elementor\Controls_Manager::TAB_STYLE ) );
         $this->slider( 'icon_size', 'Link icon size', '--cdn-icon-size', 8, 100, 18 );
         $this->slider( 'icon_gap', 'Icon spacing', '--cdn-icon-gap', 0, 60, 10 );
@@ -135,7 +153,9 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
         $collapse = $s['collapse'] ?? 'custom';
         $breakpoint = 'phone' === $collapse ? 767 : ( 'tablet' === $collapse ? 1024 : max( 320, min( 1600, absint( $s['breakpoint'] ?? 767 ) ) ) );
         $layout = 'column' === ( $s['menu_layout'] ?? 'row' ) ? 'column' : 'row';
-        echo '<nav class="cdn-nav" data-layout="' . esc_attr( $layout ) . '" aria-label="' . esc_attr( $s['label'] ?: 'Main navigation' ) . '" data-collapse="' . esc_attr( $collapse ) . '" data-breakpoint="' . $breakpoint . '" data-trigger="' . esc_attr( $s['open_on'] ) . '" data-align="' . esc_attr( $s['panel_align'] ) . '">';
+        $scroll_colors = 'yes' === ( $s['scroll_colors'] ?? '' ) ? 'yes' : 'no';
+        $scroll_threshold = max( 0, min( 100000, (int) ( $s['scroll_threshold'] ?? 80 ) ) );
+        echo '<nav class="cdn-nav" data-layout="' . esc_attr( $layout ) . '" aria-label="' . esc_attr( $s['label'] ?: 'Main navigation' ) . '" data-collapse="' . esc_attr( $collapse ) . '" data-breakpoint="' . $breakpoint . '" data-trigger="' . esc_attr( $s['open_on'] ) . '" data-align="' . esc_attr( $s['panel_align'] ) . '" data-scroll-colors="' . $scroll_colors . '" data-scroll-threshold="' . $scroll_threshold . '">';
         echo '<button class="cdn-mobile-toggle" type="button" aria-expanded="false" aria-controls="' . esc_attr( $prefix . 'root' ) . '">';
         $this->icon( $s['toggle_icon'] ?? array(), '☰' ); echo '<span>' . esc_html( $s['mobile_label'] ?: 'Menu' ) . '</span></button>';
         echo '<ul class="cdn-root" id="' . esc_attr( $prefix . 'root' ) . '">';
