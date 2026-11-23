@@ -14,7 +14,19 @@
     const isMobile = () => nav.dataset.collapse !== 'never' && media.matches;
     const states = new Map();
     const controller = new AbortController();
-    const listen = (el, event, fn) => el.addEventListener(event, fn, {signal: controller.signal});
+    const listen = (el, event, fn, options = {}) => el.addEventListener(event, fn, {...options, signal: controller.signal});
+    let scrollFrame = 0;
+    function updateScrollColors() {
+      const threshold = Math.max(0, Math.min(100000, Number(nav.dataset.scrollThreshold) || 0));
+      const position = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+      nav.classList.toggle('cdn-scrolled', nav.dataset.scrollColors === 'yes' && position > 0 && position >= threshold);
+    }
+    if (nav.dataset.scrollColors === 'yes') {
+      listen(window, 'scroll', () => {
+        if (!scrollFrame) scrollFrame = requestAnimationFrame(() => { scrollFrame = 0; updateScrollColors(); });
+      }, {passive: true});
+      listen(window, 'pageshow', updateScrollColors);
+    }
     function animateDropdown(state, opening, finish = () => {}) {
       state.animation?.cancel();
       state.animation = null;
@@ -173,6 +185,7 @@
       if (!nav.contains(event.target)) { states.forEach(state => close(state)); setMobile(false); }
     });
     function responsive() {
+      updateScrollColors();
       const wasMobile = nav.classList.contains('cdn-is-mobile');
       nav.classList.toggle('cdn-is-mobile', isMobile());
       nav.classList.toggle('cdn-is-vertical', getComputedStyle(root).flexDirection === 'column');
@@ -190,6 +203,7 @@
     states.forEach(state => state.panels.forEach(panel => observer.observe(panel)));
     instances.set(nav, {refresh: responsive, destroy() {
       controller.abort(); observer.disconnect();
+      cancelAnimationFrame(scrollFrame);
       states.forEach(state => { state.animation?.cancel(); close(state); state.animation?.cancel(); state.li.classList.remove('cdn-closing'); });
       instances.delete(nav); delete nav.dataset.cdnReady;
     }});
