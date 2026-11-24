@@ -146,6 +146,15 @@
       const css = getComputedStyle(target);
       return {height: target.getBoundingClientRect().height + 'px', minHeight: css.minHeight, padding: css.padding, backgroundColor: css.backgroundColor};
     }
+    function applySkin(scrolled) {
+      // Read the destination without Elementor's CSS transition interpolating it.
+      // Otherwise the WAAPI endpoint can equal the starting transparent color.
+      const names = ['transition-property','transition-duration','transition-timing-function','transition-delay','transition-behavior'];
+      const transitions = names.map(p => [p,target.style.getPropertyValue(p),target.style.getPropertyPriority(p)]);
+      target.style.setProperty('transition','none','important');
+      try { skin(scrolled); return snapshot(); }
+      finally { transitions.forEach(([p,v,priority]) => { if (v) target.style.setProperty(p,v,priority); else target.style.removeProperty(p); }); }
+    }
     function logoSize() { const r = logo?.getBoundingClientRect(); return r ? {width:r.width+'px',height:r.height+'px'} : null; }
     function sticky(scrolled) {
       let nativeSticky = target.classList.contains('elementor-sticky') || !!target.closest('.elementor-sticky');
@@ -171,13 +180,12 @@
       if (!shell.getClientRects().length) { controller.destroy(); return; }
       if (refresh || lastState === null) {
         release(); overlay?.refresh(); headerAnimation?.cancel(); logoAnimation?.cancel();
-        skin(false); normalHeight = target.getBoundingClientRect().height;
-        skin(scrolled); lastState = scrolled;
+        applySkin(false); normalHeight = target.getBoundingClientRect().height;
+        applySkin(scrolled); lastState = scrolled;
       } else if (scrolled !== lastState) {
         const before = snapshot(), oldLogo = logoSize();
         headerAnimation?.cancel(); logoAnimation?.cancel();
-        skin(scrolled);
-        const after = snapshot(), newLogo = logoSize();
+        const after = applySkin(scrolled), newLogo = logoSize();
         const parsed = parseFloat(getComputedStyle(shell).getPropertyValue('--cdn-header-duration'));
         const duration = Number.isFinite(parsed) ? Math.max(0,Math.min(1500,parsed)) : 250;
         if (duration && !matchMedia('(prefers-reduced-motion: reduce)').matches && target.animate) {
