@@ -59,4 +59,5 @@
 .cdn-controlled-header{box-sizing:border-box}
 .cdn-header-spacer{pointer-events:none;visibility:hidden}
 .cdn-header-logo:focus-visible{outline:2px solid currentColor;outline-offset:4px}
+.cdn-nav[data-scroll-colors=yes] .cdn-root>li>.cdn-row,.cdn-nav[data-scroll-colors=yes] .cdn-mobile-toggle{transition:color var(--cdn-color-duration,250ms) ease,background-color var(--cdn-color-duration,250ms) ease}
 @media(prefers-reduced-motion:reduce){.cdn-nav,.cdn-nav *,.cdn-controlled-header,.cdn-header-logo{transition:none!important;scroll-behavior:auto!important}}

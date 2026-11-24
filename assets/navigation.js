@@ -5,6 +5,43 @@
   const instances = new WeakMap();
   const headerOwners = new WeakMap();
   const logoOwners = new WeakMap();
+  const overlayOwners = new WeakMap();
+  function createOverlay(shell, target) {
+    if (shell.dataset.overlay !== 'yes' || window.elementorFrontend?.isEditMode?.() || document.body.classList.contains('elementor-editor-active')) return null;
+    let root = shell.closest('.elementor-location-header'), generated = false;
+    if (!root) {
+      generated = true;
+      root = target.parentElement.matches('.cdn-overlay-host') ? target.parentElement : document.createElement('div');
+      if (!root.classList.contains('cdn-overlay-host')) { root.className = 'cdn-overlay-host'; target.before(root); root.append(target); }
+    }
+    let owner = overlayOwners.get(root);
+    if (!owner) {
+      const properties = ['position','top','left','right','bottom','width','margin','z-index','box-sizing'];
+      if (root.dataset.cdnOverlayStyle) {
+        try { const copied = JSON.parse(root.dataset.cdnOverlayStyle); properties.forEach(p => { const v = copied[p]; if (v?.[0]) root.style.setProperty(p,v[0],v[1]); else root.style.removeProperty(p); }); } catch (_) {}
+      }
+      const saved = Object.fromEntries(properties.map(p => [p,[root.style.getPropertyValue(p),root.style.getPropertyPriority(p)]]));
+      const restore = () => properties.forEach(p => { const v = saved[p]; if (v[0]) root.style.setProperty(p,v[0],v[1]); else root.style.removeProperty(p); });
+      owner = {count:0,refresh() {
+        restore();
+        const rect = root.getBoundingClientRect();
+        root.style.setProperty('position','absolute','important');
+        const parent = root.offsetParent, box = parent?.getBoundingClientRect();
+        const top = parent && parent !== document.body && parent !== document.documentElement ? rect.top - box.top - parent.clientTop + parent.scrollTop : rect.top + window.scrollY;
+        const left = parent && parent !== document.body && parent !== document.documentElement ? rect.left - box.left - parent.clientLeft + parent.scrollLeft : rect.left + window.scrollX;
+        const values = {top:top+'px',left:left+'px',right:'auto',bottom:'auto',width:rect.width+'px',margin:'0px','z-index':String(Number(shell.dataset.headerZ)||1000),'box-sizing':'border-box'};
+        Object.entries(values).forEach(([p,v]) => root.style.setProperty(p,v,'important'));
+        root.dataset.cdnOverlayStyle = JSON.stringify(saved);
+      },release() {
+        if (--owner.count) return;
+        restore(); delete root.dataset.cdnOverlayStyle; overlayOwners.delete(root);
+        if (generated && root.parentNode) { while (root.firstChild) root.before(root.firstChild); root.remove(); }
+      }};
+      overlayOwners.set(root,owner); owner.refresh();
+    }
+    owner.count++;
+    return {refresh:owner.refresh,destroy:owner.release};
+  }
   function externalLogo(shell, target) {
     if (shell.dataset.logoLocation !== 'external' || !shell.dataset.logoId) return null;
     const scope = shell.closest('.elementor-location-header') || (target !== shell.querySelector('.cdn-header-bar') ? target : shell.closest('.e-con,.elementor-section')) || shell.parentElement;
@@ -37,7 +74,7 @@
     }, destroy() { apply(image,original.image); sources.forEach((s,i) => apply(s,original.sources[i])); delete image.dataset.cdnLogoOriginal; logoOwners.delete(image); }};
   }
   function createHeader(shell) {
-    if (!shell || !shell.getClientRects().length) return null;
+    if (!shell || !shell.getClientRects().length || shell.closest('.elementor-sticky__spacer')) return null;
     const bar = shell.querySelector('.cdn-header-bar');
     let target = bar;
     if (shell.dataset.headerScope === 'selector' && shell.dataset.headerSelector) {
@@ -84,6 +121,8 @@
     spacer.className = 'cdn-header-spacer'; spacer.setAttribute('aria-hidden','true'); spacer.style.display = 'none';
     target.before(spacer);
     target.classList.add('cdn-controlled-header');
+    const overlay = createOverlay(shell,target);
+    if (target.parentElement.matches('.cdn-overlay-host')) target.before(spacer);
     const external = externalLogo(shell,target);
     const logo = external?.image || shell.querySelector('.cdn-header-logo');
     let fixed = false, lastState = null, normalHeight = 0, headerAnimation, logoAnimation;
@@ -131,7 +170,7 @@
       if (!controller.active) return;
       if (!shell.getClientRects().length) { controller.destroy(); return; }
       if (refresh || lastState === null) {
-        release(); headerAnimation?.cancel(); logoAnimation?.cancel();
+        release(); overlay?.refresh(); headerAnimation?.cancel(); logoAnimation?.cancel();
         skin(false); normalHeight = target.getBoundingClientRect().height;
         skin(scrolled); lastState = scrolled;
       } else if (scrolled !== lastState) {
@@ -154,7 +193,7 @@
       Array.from(saved.keys()).forEach(restore);
       target.classList.remove('cdn-controlled-header'); delete target.dataset.cdnHeaderStyle;
       if (external) { external.image.removeEventListener('load',refreshLogo); external.destroy(); }
-      spacer.remove(); headerOwners.delete(target);
+      spacer.remove(); overlay?.destroy(); headerOwners.delete(target);
     }};
     function refreshLogo() { if (controller.active && !lastState && !fixed) normalHeight = target.getBoundingClientRect().height; }
     external?.image.addEventListener('load',refreshLogo);
@@ -162,7 +201,7 @@
     return controller;
   }
   function init(nav) {
-    if (!nav.isConnected || instances.has(nav)) return;
+    if (!nav.isConnected || instances.has(nav) || nav.closest('.elementor-sticky__spacer')) return;
     nav.dataset.cdnReady = 'true';
     nav.classList.add('cdn-enhanced');
     nav.dir = getComputedStyle(nav).direction;
