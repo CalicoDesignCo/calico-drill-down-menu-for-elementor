@@ -14,6 +14,7 @@ A WordPress navigation widget for Elementor Free or Pro. Deeper menu levels slid
 - Keyboard navigation, focus restoration, reduced-motion support, and right-to-left layouts.
 - Use multiple widgets with separate menus and styling.
 - Optional normal/hover color palettes at page top and after a configurable scroll distance, for transparent headers.
+- Optional sticky header, transparent background, separate before/after logos and synchronized bar/logo shrinking.
 - GitHub-backed WordPress updates without a GitHub token.
 
 ## Download and install
@@ -43,7 +44,15 @@ Parent rows are submenu buttons; leaf items and View links are ordinary links. T
 
 Set **Collapse to mobile menu → Never** to retain full navigation on tablets and phones. Links may wrap to fit the available header width. A parent header with `overflow: hidden` or `clip` can clip dropdowns; use visible overflow and suitable stacking.
 
-Enable **Style → Scroll colors → Change colors on scroll**, set **Switch after (px)**, and configure the **At top** and **After scrolling** tabs. This overrides top-level active text/icon colors while enabled. Header transparency and sticky positioning are configured in the header template.
+Enable **Style → Scroll colors → Change colors on scroll**, set **Switch after (px)**, and configure the **At top** and **After scrolling** tabs. This overrides top-level active text/icon colors while enabled. Header backgrounds, sticky positioning, logos and shrinking can share this threshold through the optional header controls.
+
+## Header and logos
+
+Enable Content → Header & logos → Enable header controls. Choose This widget for the built-in logo/menu bar, Elementor header container to control the surrounding Theme Builder header, or an ancestor CSS selector for a specific surrounding container. Enable this on one menu per container. Upload Logo before scroll and Logo after scroll; a single supplied image is used in both states. Set the logo link and accessible label.
+
+Choose Sticky header and Start sticking, a top offset, Transparent before scroll and Shrink logo and header after scroll. Under Style → Header bar & logo sizes, set before/after backgrounds, minimum bar heights, padding, logo widths/maximum heights and transition duration, with responsive sizes. Content and padding can make a bar taller than its minimum. Set the shared Switch after threshold under Style → Scroll colors, even if menu color changes are off. Existing Elementor Sticky owns positioning when enabled; use one sticky controller per container. Sticky positioning is suppressed in the Elementor editor. Reduced-motion preferences disable transitions.
+
+Header controls are off by default. Transparent background clears the controlled element's background, not separate ancestor backgrounds or Elementor background overlays. Configure overlay positioning in your header template when the header should sit over page content. Container controls preserve other header widgets; they do not resize a separate Elementor logo widget. Use the logo fields in this widget for coordinated logo changes.
 
 ## Verification and limits
 
@@ -54,6 +63,13 @@ PHP 7.4/8.3 isolated render checks and local Chrome interaction checks cover fiv
 Deactivate the plugin to stop its widget and updater. WordPress menus, media, and Elementor settings remain owned by WordPress/Elementor; the plugin creates no custom tables. Reinstall the prior saved package if rollback is needed.
 
 ## Changelog
+
+### 1.4.0
+
+- Optional sticky header with transparency and separate before/after logos.
+- Responsive minimum bar heights, padding and logo sizes shrink together at the shared threshold.
+- Widget or ancestor container scope, offsets/admin bar handling, reduced motion, clone initialization and original-style restoration.
+
 
 ### 1.3.0
 

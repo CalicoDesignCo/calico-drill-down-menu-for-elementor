@@ -4,7 +4,7 @@ Tags: elementor, navigation, menu, dropdown, icons
 Requires at least: 6.5
 Requires PHP: 7.4
 Requires Plugins: elementor
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -39,8 +39,16 @@ Display an existing WordPress navigation menu using Elementor Free or Pro. Click
 
 == Frequently Asked Questions ==
 
+= How do I set up a shrinking sticky header and separate logos? =
+Enable Content > Header & logos > Enable header controls. Choose This widget for the built-in logo/menu bar, Elementor header container to control the surrounding Theme Builder header, or an ancestor CSS selector for a specific surrounding container. Enable this on one menu per container. Upload Logo before scroll and Logo after scroll; a single supplied image is used in both states. Set the logo link and accessible label.
+
+Choose Sticky header and Start sticking, a top offset, Transparent before scroll and Shrink logo and header after scroll. Under Style > Header bar & logo sizes, set before/after backgrounds, minimum bar heights, padding, logo widths/maximum heights and transition duration, with responsive sizes. Content and padding can make a bar taller than its minimum. Set the shared Switch after threshold under Style > Scroll colors, even if menu color changes are off. Existing Elementor Sticky owns positioning when enabled; use one sticky controller per container. Sticky positioning is suppressed in the Elementor editor. Reduced-motion preferences disable transitions.
+
+Header controls are off by default. Transparent background clears the controlled element's background, not separate ancestor backgrounds or Elementor background overlays. Configure overlay positioning in your header template when the header should sit over page content. Container controls preserve other header widgets; they do not resize a separate Elementor logo widget. Use the logo fields in this widget for coordinated logo changes.
+
+
 = How do I use different colors over a transparent header? =
-Enable Style > Scroll colors > Change colors on scroll. Set Switch after (px), then choose normal/hover text colors and optional backgrounds in At top and After scrolling. These palettes override top-level current-link and icon/arrow colors while enabled. Dropdown panels keep their own styles. The mobile toggle follows the same palette. At a zero threshold, colors switch as soon as the page leaves the top. This control changes menu colors; configure header transparency and sticky behavior in your header template.
+Enable Style > Scroll colors > Change colors on scroll. Set Switch after (px), then choose normal/hover text colors and optional backgrounds in At top and After scrolling. These palettes override top-level current-link and icon/arrow colors while enabled. Dropdown panels keep their own styles. The mobile toggle follows the same palette. At a zero threshold, colors switch as soon as the page leaves the top. Enable Content > Header & logos for coordinated header transparency, sticky behavior and logo changes.
 
 
 = Do parent labels still link to their pages? =
@@ -62,6 +70,12 @@ No. Hierarchy, labels, order, destinations, new-tab targets, and link relationsh
 Yes. WordPress checks stable releases from https://github.com/CalicoDesignCo/calico-drill-down-menu-for-elementor without a GitHub token. Use Dashboard > Updates > Check again. Drafts, prereleases and downgrades are ignored. Upload this updater-enabled release manually once if you installed local 0.1.0 or 0.2.0. Automatic-update scheduling stays under the administrator's control.
 
 == Changelog ==
+
+= 1.4.0 =
+* Add optional sticky header controls, transparent before-scroll background and separate before/after logos.
+* Coordinate responsive bar height/padding and logo shrink at the shared scroll threshold.
+* Support widget/ancestor header scope, sticky offsets, admin bars, reduced motion and style restoration.
+
 
 = 1.3.0 =
 * Optional scroll colors for top-level links, icons/arrows and the mobile toggle, with a configurable pixel threshold.
