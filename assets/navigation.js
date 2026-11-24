@@ -4,6 +4,38 @@
   // DOM attributes survive Elementor's popup clones; event listeners do not.
   const instances = new WeakMap();
   const headerOwners = new WeakMap();
+  const logoOwners = new WeakMap();
+  function externalLogo(shell, target) {
+    if (shell.dataset.logoLocation !== 'external' || !shell.dataset.logoId) return null;
+    const scope = shell.closest('.elementor-location-header') || (target !== shell.querySelector('.cdn-header-bar') ? target : shell.closest('.e-con,.elementor-section')) || shell.parentElement;
+    const attrs = ['src','srcset','sizes','width','height','style'];
+    const capture = e => Object.fromEntries(attrs.map(a => [a,e.getAttribute(a)]));
+    const apply = (e, values) => Object.entries(values).forEach(([a,v]) => { if (v === null) e.removeAttribute(a); else if (e.getAttribute(a) !== v) e.setAttribute(a,v); });
+    // Restore cloned image attributes even if the new widget no longer targets that ID.
+    scope.querySelectorAll('img[data-cdn-logo-original]').forEach(img => {
+      if (logoOwners.has(img)) return;
+      try { const original = JSON.parse(img.dataset.cdnLogoOriginal); apply(img,original.image); img.closest('picture')?.querySelectorAll('source').forEach((s,i) => { if (original.sources[i]) apply(s,original.sources[i]); }); } catch (_) {}
+      delete img.dataset.cdnLogoOriginal;
+    });
+    const tagged = [scope,...scope.querySelectorAll('[id]')].find(e => e.id === shell.dataset.logoId && e.getClientRects().length);
+    const image = tagged?.matches('img') ? tagged : tagged?.querySelector('img');
+    if (!image || shell.contains(image) || logoOwners.has(image)) return null;
+    const sources = Array.from(image.closest('picture')?.querySelectorAll('source') || []);
+    logoOwners.set(image,shell);
+    const original = {image:capture(image),sources:sources.map(capture)};
+    image.dataset.cdnLogoOriginal = JSON.stringify(original);
+    return {image, update(scrolled) {
+      const css = getComputedStyle(shell), phase = scrolled && shell.dataset.shrink === 'yes' ? 'after' : 'before';
+      const url = scrolled ? shell.dataset.logoAfter || shell.dataset.logoBefore : shell.dataset.logoBefore;
+      if (url) {
+        apply(image,{src:url,srcset:null,sizes:null});
+        sources.forEach(s => { s.removeAttribute('srcset'); s.removeAttribute('sizes'); });
+      } else { apply(image,Object.fromEntries(['src','srcset','sizes'].map(a => [a,original.image[a]]))); sources.forEach((s,i) => apply(s,original.sources[i])); }
+      image.style.width = css.getPropertyValue('--cdn-logo-width-'+phase).trim();
+      image.style.maxHeight = css.getPropertyValue('--cdn-logo-height-'+phase).trim();
+      image.style.height = 'auto'; image.style.maxWidth = '100%'; image.style.objectFit = 'contain';
+    }, destroy() { apply(image,original.image); sources.forEach((s,i) => apply(s,original.sources[i])); delete image.dataset.cdnLogoOriginal; logoOwners.delete(image); }};
+  }
   function createHeader(shell) {
     if (!shell || !shell.getClientRects().length) return null;
     const bar = shell.querySelector('.cdn-header-bar');
@@ -52,7 +84,8 @@
     spacer.className = 'cdn-header-spacer'; spacer.setAttribute('aria-hidden','true'); spacer.style.display = 'none';
     target.before(spacer);
     target.classList.add('cdn-controlled-header');
-    const logo = shell.querySelector('.cdn-header-logo');
+    const external = externalLogo(shell,target);
+    const logo = external?.image || shell.querySelector('.cdn-header-logo');
     let fixed = false, lastState = null, normalHeight = 0, headerAnimation, logoAnimation;
     const fixedProperties = ['position','top','left','width','margin','z-index'];
     function release() {
@@ -64,6 +97,7 @@
       const css = getComputedStyle(shell);
       const phase = scrolled && shell.dataset.shrink === 'yes' ? 'after' : 'before';
       shell.classList.toggle('cdn-scrolled', scrolled);
+      external?.update(scrolled);
       const background = !scrolled && shell.dataset.transparent === 'yes' ? 'transparent' : css.getPropertyValue('--cdn-header-bg-' + (scrolled ? 'after' : 'before')).trim() || '#FFFFFF';
       set('background-color', background); set('background-image','none');
       set('min-height', css.getPropertyValue('--cdn-header-height-' + phase).trim() || (phase === 'after' ? '64px' : '96px'));
@@ -119,8 +153,11 @@
       controller.active = false; headerAnimation?.cancel(); logoAnimation?.cancel(); release();
       Array.from(saved.keys()).forEach(restore);
       target.classList.remove('cdn-controlled-header'); delete target.dataset.cdnHeaderStyle;
+      if (external) { external.image.removeEventListener('load',refreshLogo); external.destroy(); }
       spacer.remove(); headerOwners.delete(target);
     }};
+    function refreshLogo() { if (controller.active && !lastState && !fixed) normalHeight = target.getBoundingClientRect().height; }
+    external?.image.addEventListener('load',refreshLogo);
     headerOwners.set(target,controller);
     return controller;
   }
