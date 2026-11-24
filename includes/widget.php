@@ -42,10 +42,12 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
         $this->add_control( 'header_z_index', array( 'label' => 'Header z-index', 'type' => \Elementor\Controls_Manager::NUMBER, 'default' => 1000, 'min' => 1, 'max' => 2147483647, 'condition' => $header_condition ) );
         $this->add_control( 'header_transparent', array( 'label' => 'Transparent before scroll', 'type' => \Elementor\Controls_Manager::SWITCHER, 'return_value' => 'yes', 'default' => 'yes', 'condition' => $header_condition ) );
         $this->add_control( 'header_shrink', array( 'label' => 'Shrink logo and header after scroll', 'type' => \Elementor\Controls_Manager::SWITCHER, 'return_value' => 'yes', 'default' => 'yes', 'condition' => $header_condition ) );
+        $this->add_control( 'logo_location', array( 'label' => 'Logo location', 'type' => \Elementor\Controls_Manager::SELECT, 'default' => 'internal', 'options' => array( 'internal' => 'Inside this widget', 'external' => 'Existing logo by CSS ID' ), 'condition' => $header_condition ) );
+        $this->add_control( 'logo_external_id', array( 'label' => 'Existing logo CSS ID', 'type' => \Elementor\Controls_Manager::TEXT, 'placeholder' => 'header-logo', 'condition' => array( 'header_enabled' => 'yes', 'logo_location' => 'external' ), 'description' => 'In the existing Elementor Image or Site Logo widget, set Advanced > CSS ID to header-logo. Enter the same ID here, with or without #. Keep the logo and this menu in the same header container. Its link and accessible text stay unchanged.' ) );
         $this->add_control( 'logo_before', array( 'label' => 'Logo before scroll', 'type' => \Elementor\Controls_Manager::MEDIA, 'condition' => $header_condition ) );
-        $this->add_control( 'logo_after', array( 'label' => 'Logo after scroll', 'type' => \Elementor\Controls_Manager::MEDIA, 'condition' => $header_condition, 'description' => 'Optional light/dark variant. If either logo is omitted, the supplied logo is used in both states.' ) );
-        $this->add_control( 'logo_url', array( 'label' => 'Logo link', 'type' => \Elementor\Controls_Manager::TEXT, 'default' => '', 'placeholder' => 'https://example.com/', 'condition' => $header_condition, 'description' => 'Leave blank to link to the site homepage.' ) );
-        $this->add_control( 'logo_label', array( 'label' => 'Logo accessible label', 'type' => \Elementor\Controls_Manager::TEXT, 'default' => 'Home', 'condition' => $header_condition ) );
+        $this->add_control( 'logo_after', array( 'label' => 'Logo after scroll', 'type' => \Elementor\Controls_Manager::MEDIA, 'condition' => $header_condition, 'description' => 'Optional light/dark variant. Inside the widget, one supplied logo serves both states. For an existing logo, an empty Before field preserves its original image; an empty After field keeps the Before image.' ) );
+        $this->add_control( 'logo_url', array( 'label' => 'Logo link (inside widget only)', 'type' => \Elementor\Controls_Manager::TEXT, 'default' => '', 'placeholder' => 'https://example.com/', 'condition' => $header_condition, 'description' => 'Leave blank to link to the site homepage.' ) );
+        $this->add_control( 'logo_label', array( 'label' => 'Logo accessible label (inside widget only)', 'type' => \Elementor\Controls_Manager::TEXT, 'default' => 'Home', 'condition' => $header_condition ) );
         $this->end_controls_section();
         $this->start_controls_section( 'icons', array( 'label' => 'Link icons & images' ) );
         $repeater = new \Elementor\Repeater();
@@ -189,10 +191,19 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
         $header = 'yes' === ( $s['header_enabled'] ?? '' );
         if ( $header ) {
             $scope = in_array( $s['header_scope'] ?? 'widget', array( 'widget', 'container', 'selector' ), true ) ? ( $s['header_scope'] ?? 'widget' ) : 'widget';
-            echo '<div class="cdn-header-shell" data-header-scope="' . esc_attr( $scope ) . '" data-header-selector="' . esc_attr( $s['header_selector'] ?? '' ) . '" data-header-sticky="' . esc_attr( $s['header_sticky'] ?? 'yes' ) . '" data-sticky-start="' . esc_attr( $s['header_sticky_start'] ?? 'top' ) . '" data-header-offset="' . max( 0, min( 500, (int) ( $s['header_offset'] ?? 0 ) ) ) . '" data-header-z="' . max( 1, min( 2147483647, (int) ( $s['header_z_index'] ?? 1000 ) ) ) . '" data-transparent="' . esc_attr( $s['header_transparent'] ?? 'yes' ) . '" data-shrink="' . esc_attr( $s['header_shrink'] ?? 'yes' ) . '"><div class="cdn-header-bar">';
+            $external = 'external' === ( $s['logo_location'] ?? '' );
+            $external_data = '';
+            if ( $external ) {
+                foreach ( array( 'before', 'after' ) as $phase ) {
+                    $image = $s[ 'logo_' . $phase ] ?? array();
+                    $url = ! empty( $image['id'] ) ? wp_get_attachment_image_url( absint( $image['id'] ), 'full' ) : ( $image['url'] ?? '' );
+                    $external_data .= ' data-logo-' . $phase . '="' . esc_url( $url ) . '"';
+                }
+            }
+            echo '<div class="cdn-header-shell" data-header-scope="' . esc_attr( $scope ) . '" data-header-selector="' . esc_attr( $s['header_selector'] ?? '' ) . '" data-header-sticky="' . esc_attr( $s['header_sticky'] ?? 'yes' ) . '" data-sticky-start="' . esc_attr( $s['header_sticky_start'] ?? 'top' ) . '" data-header-offset="' . max( 0, min( 500, (int) ( $s['header_offset'] ?? 0 ) ) ) . '" data-header-z="' . max( 1, min( 2147483647, (int) ( $s['header_z_index'] ?? 1000 ) ) ) . '" data-transparent="' . esc_attr( $s['header_transparent'] ?? 'yes' ) . '" data-shrink="' . esc_attr( $s['header_shrink'] ?? 'yes' ) . '" data-logo-location="' . ( $external ? 'external' : 'internal' ) . '" data-logo-id="' . esc_attr( ltrim( trim( $s['logo_external_id'] ?? '' ), '#' ) ) . '"' . $external_data . '><div class="cdn-header-bar">';
             $before = $s['logo_before'] ?? array(); $after = $s['logo_after'] ?? array();
             $has_before = ! empty( $before['id'] ) || ! empty( $before['url'] ); $has_after = ! empty( $after['id'] ) || ! empty( $after['url'] );
-            if ( $has_before || $has_after ) {
+            if ( ! $external && ( $has_before || $has_after ) ) {
                 echo '<a class="cdn-header-logo" href="' . esc_url( ! empty( $s['logo_url'] ) ? $s['logo_url'] : home_url( '/' ) ) . '" aria-label="' . esc_attr( ! empty( $s['logo_label'] ) ? $s['logo_label'] : 'Home' ) . '">';
                 if ( $has_before && $has_after ) { $this->header_logo( $before, 'cdn-logo-before' ); $this->header_logo( $after, 'cdn-logo-after' ); }
                 else { $this->header_logo( $has_before ? $before : $after, 'cdn-logo-single' ); }
