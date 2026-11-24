@@ -31,6 +31,22 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
             $this->add_control( $key . '_icon', array( 'label' => $label, 'type' => \Elementor\Controls_Manager::ICONS ) );
         }
         $this->end_controls_section();
+        $this->start_controls_section( 'header_content', array( 'label' => 'Header & logos' ) );
+        $this->add_control( 'header_enabled', array( 'label' => 'Enable header controls', 'type' => \Elementor\Controls_Manager::SWITCHER, 'return_value' => 'yes', 'default' => '', 'render_type' => 'template', 'description' => 'Add a logo and coordinate header backgrounds, shrinking and sticky behavior. Uses the shared Switch after threshold under Style > Scroll colors.' ) );
+        $header_condition = array( 'header_enabled' => 'yes' );
+        $this->add_control( 'header_scope', array( 'label' => 'Header to control', 'type' => \Elementor\Controls_Manager::SELECT, 'default' => 'widget', 'options' => array( 'widget' => 'This widget (logo + menu)', 'container' => 'Elementor header container', 'selector' => 'Ancestor CSS selector' ), 'condition' => $header_condition, 'description' => 'Container mode controls the outer header container in Theme Builder, or the nearest container elsewhere. Enable this on one menu per container.' ) );
+        $this->add_control( 'header_selector', array( 'label' => 'Header container selector', 'type' => \Elementor\Controls_Manager::TEXT, 'default' => '', 'placeholder' => '#site-header', 'condition' => array( 'header_enabled' => 'yes', 'header_scope' => 'selector' ), 'description' => 'Select a container that surrounds this widget. Invalid or unrelated selectors fall back to this widget.' ) );
+        $this->add_control( 'header_sticky', array( 'label' => 'Sticky header', 'type' => \Elementor\Controls_Manager::SWITCHER, 'return_value' => 'yes', 'default' => 'yes', 'condition' => $header_condition, 'description' => 'Disable Elementor Sticky on the same container. This controller yields to an existing Elementor sticky setting.' ) );
+        $this->add_control( 'header_sticky_start', array( 'label' => 'Start sticking', 'type' => \Elementor\Controls_Manager::SELECT, 'default' => 'top', 'options' => array( 'top' => 'When header reaches the top', 'threshold' => 'After shared scroll threshold' ), 'condition' => array( 'header_enabled' => 'yes', 'header_sticky' => 'yes' ) ) );
+        $this->add_control( 'header_offset', array( 'label' => 'Sticky top offset (px)', 'type' => \Elementor\Controls_Manager::NUMBER, 'default' => 0, 'min' => 0, 'max' => 500, 'condition' => array( 'header_enabled' => 'yes', 'header_sticky' => 'yes' ), 'description' => 'The WordPress admin bar offset is added automatically when it is visible.' ) );
+        $this->add_control( 'header_z_index', array( 'label' => 'Header z-index', 'type' => \Elementor\Controls_Manager::NUMBER, 'default' => 1000, 'min' => 1, 'max' => 2147483647, 'condition' => $header_condition ) );
+        $this->add_control( 'header_transparent', array( 'label' => 'Transparent before scroll', 'type' => \Elementor\Controls_Manager::SWITCHER, 'return_value' => 'yes', 'default' => 'yes', 'condition' => $header_condition ) );
+        $this->add_control( 'header_shrink', array( 'label' => 'Shrink logo and header after scroll', 'type' => \Elementor\Controls_Manager::SWITCHER, 'return_value' => 'yes', 'default' => 'yes', 'condition' => $header_condition ) );
+        $this->add_control( 'logo_before', array( 'label' => 'Logo before scroll', 'type' => \Elementor\Controls_Manager::MEDIA, 'condition' => $header_condition ) );
+        $this->add_control( 'logo_after', array( 'label' => 'Logo after scroll', 'type' => \Elementor\Controls_Manager::MEDIA, 'condition' => $header_condition, 'description' => 'Optional light/dark variant. If either logo is omitted, the supplied logo is used in both states.' ) );
+        $this->add_control( 'logo_url', array( 'label' => 'Logo link', 'type' => \Elementor\Controls_Manager::TEXT, 'default' => '', 'placeholder' => 'https://example.com/', 'condition' => $header_condition, 'description' => 'Leave blank to link to the site homepage.' ) );
+        $this->add_control( 'logo_label', array( 'label' => 'Logo accessible label', 'type' => \Elementor\Controls_Manager::TEXT, 'default' => 'Home', 'condition' => $header_condition ) );
+        $this->end_controls_section();
         $this->start_controls_section( 'icons', array( 'label' => 'Link icons & images' ) );
         $repeater = new \Elementor\Repeater();
         $repeater->add_control( 'item', array( 'label' => 'Menu item', 'type' => \Elementor\Controls_Manager::SELECT2, 'options' => $items, 'label_block' => true ) );
@@ -71,7 +87,7 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
         }
         $this->start_controls_section( 'scroll_style', array( 'label' => 'Scroll colors', 'tab' => \Elementor\Controls_Manager::TAB_STYLE ) );
         $this->add_control( 'scroll_colors', array( 'label' => 'Change colors on scroll', 'type' => \Elementor\Controls_Manager::SWITCHER, 'return_value' => 'yes', 'default' => '', 'render_type' => 'template', 'description' => 'Change top-level link, icon, arrow and mobile-toggle colors for transparent headers. Dropdown panels retain their own styling.' ) );
-        $this->add_control( 'scroll_threshold', array( 'label' => 'Switch after (px)', 'type' => \Elementor\Controls_Manager::NUMBER, 'min' => 0, 'max' => 100000, 'default' => 80, 'render_type' => 'template', 'condition' => array( 'scroll_colors' => 'yes' ) ) );
+        $this->add_control( 'scroll_threshold', array( 'label' => 'Switch after (px)', 'type' => \Elementor\Controls_Manager::NUMBER, 'min' => 0, 'max' => 100000, 'default' => 80, 'render_type' => 'template', 'description' => 'Shared by menu colors, header backgrounds, logo changes and shrinking.', 'conditions' => array( 'relation' => 'or', 'terms' => array( array( 'name' => 'scroll_colors', 'operator' => '===', 'value' => 'yes' ), array( 'name' => 'header_enabled', 'operator' => '===', 'value' => 'yes' ) ) ) ) );
         $this->start_controls_tabs( 'scroll_color_states' );
         foreach ( array( 'top' => array( 'At top', ':not(.cdn-scrolled)', '#FFFFFF', '#E5E7EB' ), 'scrolled' => array( 'After scrolling', '.cdn-scrolled', '#202632', '#174BBB' ) ) as $phase => $config ) {
             $this->start_controls_tab( 'scroll_phase_' . $phase, array( 'label' => $config[0], 'condition' => array( 'scroll_colors' => 'yes' ) ) );
@@ -86,6 +102,17 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
             $this->end_controls_tab();
         }
         $this->end_controls_tabs();
+        $this->end_controls_section();
+        $this->start_controls_section( 'header_style', array( 'label' => 'Header bar & logo sizes', 'tab' => \Elementor\Controls_Manager::TAB_STYLE, 'condition' => $header_condition ) );
+        $this->add_control( 'header_bg_before', array( 'label' => 'Background before scroll', 'type' => \Elementor\Controls_Manager::COLOR, 'default' => '#FFFFFF', 'condition' => array( 'header_transparent' => '' ), 'selectors' => array( '{{WRAPPER}} .cdn-header-shell' => '--cdn-header-bg-before: {{VALUE}};' ) ) );
+        $this->add_control( 'header_bg_after', array( 'label' => 'Background after scroll', 'type' => \Elementor\Controls_Manager::COLOR, 'default' => '#FFFFFF', 'selectors' => array( '{{WRAPPER}} .cdn-header-shell' => '--cdn-header-bg-after: {{VALUE}};' ) ) );
+        foreach ( array( 'before' => array( 'Before scroll', 96, 16, 180, 80 ), 'after' => array( 'After scroll', 64, 8, 120, 48 ) ) as $phase => $values ) {
+            $this->add_responsive_control( 'header_height_' . $phase, array( 'label' => $values[0] . ' minimum bar height', 'type' => \Elementor\Controls_Manager::SLIDER, 'range' => array( 'px' => array( 'min' => 0, 'max' => 400 ) ), 'default' => array( 'size' => $values[1], 'unit' => 'px' ), 'selectors' => array( '{{WRAPPER}} .cdn-header-shell' => '--cdn-header-height-' . $phase . ': {{SIZE}}px;' ) ) );
+            $this->add_responsive_control( 'header_padding_' . $phase, array( 'label' => $values[0] . ' bar padding', 'type' => \Elementor\Controls_Manager::DIMENSIONS, 'size_units' => array( 'px' ), 'default' => array( 'top' => $values[2], 'right' => 24, 'bottom' => $values[2], 'left' => 24, 'unit' => 'px', 'isLinked' => false ), 'selectors' => array( '{{WRAPPER}} .cdn-header-shell' => '--cdn-header-padding-' . $phase . ': {{TOP}}px {{RIGHT}}px {{BOTTOM}}px {{LEFT}}px;' ) ) );
+            $this->add_responsive_control( 'logo_width_' . $phase, array( 'label' => $values[0] . ' logo width', 'type' => \Elementor\Controls_Manager::SLIDER, 'range' => array( 'px' => array( 'min' => 20, 'max' => 600 ) ), 'default' => array( 'size' => $values[3], 'unit' => 'px' ), 'selectors' => array( '{{WRAPPER}} .cdn-header-shell' => '--cdn-logo-width-' . $phase . ': {{SIZE}}px;' ) ) );
+            $this->add_responsive_control( 'logo_height_' . $phase, array( 'label' => $values[0] . ' logo maximum height', 'type' => \Elementor\Controls_Manager::SLIDER, 'range' => array( 'px' => array( 'min' => 10, 'max' => 300 ) ), 'default' => array( 'size' => $values[4], 'unit' => 'px' ), 'selectors' => array( '{{WRAPPER}} .cdn-header-shell' => '--cdn-logo-height-' . $phase . ': {{SIZE}}px;' ) ) );
+        }
+        $this->add_control( 'header_duration', array( 'label' => 'Header transition (ms)', 'type' => \Elementor\Controls_Manager::NUMBER, 'default' => 250, 'min' => 0, 'max' => 1500, 'selectors' => array( '{{WRAPPER}} .cdn-header-shell' => '--cdn-header-duration: {{VALUE}}ms;' ) ) );
         $this->end_controls_section();
         $this->start_controls_section( 'icon_style', array( 'label' => 'Icons & arrows', 'tab' => \Elementor\Controls_Manager::TAB_STYLE ) );
         $this->slider( 'icon_size', 'Link icon size', '--cdn-icon-size', 8, 100, 18 );
@@ -112,6 +139,10 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
         if ( ! empty( $icon['value'] ) ) { \Elementor\Icons_Manager::render_icon( $icon, array( 'aria-hidden' => 'true' ) ); }
         else { echo esc_html( $fallback ); }
         echo '</span>';
+    }
+    private function header_logo( $image, $class ) {
+        if ( ! empty( $image['id'] ) ) { echo wp_get_attachment_image( absint( $image['id'] ), 'full', false, array( 'class' => $class, 'alt' => '', 'aria-hidden' => 'true', 'loading' => 'eager' ) ); }
+        elseif ( ! empty( $image['url'] ) ) { echo '<img class="' . esc_attr( $class ) . '" src="' . esc_url( $image['url'] ) . '" alt="" aria-hidden="true" loading="eager" />'; }
     }
     private function row( $item, $has_children, $s, $icons, $prefix, $top = false, $view = false ) {
         $current = ! empty( $item->current );
@@ -155,6 +186,19 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
         $layout = 'column' === ( $s['menu_layout'] ?? 'row' ) ? 'column' : 'row';
         $scroll_colors = 'yes' === ( $s['scroll_colors'] ?? '' ) ? 'yes' : 'no';
         $scroll_threshold = max( 0, min( 100000, (int) ( $s['scroll_threshold'] ?? 80 ) ) );
+        $header = 'yes' === ( $s['header_enabled'] ?? '' );
+        if ( $header ) {
+            $scope = in_array( $s['header_scope'] ?? 'widget', array( 'widget', 'container', 'selector' ), true ) ? ( $s['header_scope'] ?? 'widget' ) : 'widget';
+            echo '<div class="cdn-header-shell" data-header-scope="' . esc_attr( $scope ) . '" data-header-selector="' . esc_attr( $s['header_selector'] ?? '' ) . '" data-header-sticky="' . esc_attr( $s['header_sticky'] ?? 'yes' ) . '" data-sticky-start="' . esc_attr( $s['header_sticky_start'] ?? 'top' ) . '" data-header-offset="' . max( 0, min( 500, (int) ( $s['header_offset'] ?? 0 ) ) ) . '" data-header-z="' . max( 1, min( 2147483647, (int) ( $s['header_z_index'] ?? 1000 ) ) ) . '" data-transparent="' . esc_attr( $s['header_transparent'] ?? 'yes' ) . '" data-shrink="' . esc_attr( $s['header_shrink'] ?? 'yes' ) . '"><div class="cdn-header-bar">';
+            $before = $s['logo_before'] ?? array(); $after = $s['logo_after'] ?? array();
+            $has_before = ! empty( $before['id'] ) || ! empty( $before['url'] ); $has_after = ! empty( $after['id'] ) || ! empty( $after['url'] );
+            if ( $has_before || $has_after ) {
+                echo '<a class="cdn-header-logo" href="' . esc_url( ! empty( $s['logo_url'] ) ? $s['logo_url'] : home_url( '/' ) ) . '" aria-label="' . esc_attr( ! empty( $s['logo_label'] ) ? $s['logo_label'] : 'Home' ) . '">';
+                if ( $has_before && $has_after ) { $this->header_logo( $before, 'cdn-logo-before' ); $this->header_logo( $after, 'cdn-logo-after' ); }
+                else { $this->header_logo( $has_before ? $before : $after, 'cdn-logo-single' ); }
+                echo '</a>';
+            }
+        }
         echo '<nav class="cdn-nav" data-layout="' . esc_attr( $layout ) . '" aria-label="' . esc_attr( $s['label'] ?: 'Main navigation' ) . '" data-collapse="' . esc_attr( $collapse ) . '" data-breakpoint="' . $breakpoint . '" data-trigger="' . esc_attr( $s['open_on'] ) . '" data-align="' . esc_attr( $s['panel_align'] ) . '" data-scroll-colors="' . $scroll_colors . '" data-scroll-threshold="' . $scroll_threshold . '">';
         echo '<button class="cdn-mobile-toggle" type="button" aria-expanded="false" aria-controls="' . esc_attr( $prefix . 'root' ) . '">';
         $this->icon( $s['toggle_icon'] ?? array(), '☰' ); echo '<span>' . esc_html( $s['mobile_label'] ?: 'Menu' ) . '</span></button>';
@@ -186,5 +230,6 @@ class Calico_Drilldown_Navigation_Widget extends \Elementor\Widget_Base {
             echo '</li>';
         }
         echo '</ul></nav>';
+        if ( $header ) { echo '</div></div>'; }
     }
 }
