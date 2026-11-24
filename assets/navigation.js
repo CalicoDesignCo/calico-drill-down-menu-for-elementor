@@ -73,8 +73,11 @@
       image.style.height = 'auto'; image.style.maxWidth = '100%'; image.style.objectFit = 'contain';
     }, destroy() { apply(image,original.image); sources.forEach((s,i) => apply(s,original.sources[i])); delete image.dataset.cdnLogoOriginal; logoOwners.delete(image); }};
   }
+  function headerCanRun(shell, target) {
+    return shell?.isConnected && !shell.closest('.elementor-sticky__spacer') && target?.getClientRects().length && (shell.getClientRects().length || shell.dataset.headerWhenHidden !== 'no');
+  }
   function createHeader(shell) {
-    if (!shell || !shell.getClientRects().length || shell.closest('.elementor-sticky__spacer')) return null;
+    if (!shell?.isConnected || shell.closest('.elementor-sticky__spacer')) return null;
     const bar = shell.querySelector('.cdn-header-bar');
     let target = bar;
     if (shell.dataset.headerScope === 'selector' && shell.dataset.headerSelector) {
@@ -88,9 +91,11 @@
         ancestor = ancestor.parentElement;
       }
     }
+    if (!headerCanRun(shell,target)) return null;
     const owner = headerOwners.get(target);
     if (owner) {
-      if (owner.shell.getClientRects().length) return null;
+      // Prefer a visible menu if two responsive widgets share a header.
+      if (headerCanRun(owner.shell,target) && (owner.shell.getClientRects().length || !shell.getClientRects().length)) return null;
       owner.destroy();
     }
     const properties = ['background-color','background-image','min-height','padding','position','top','left','width','margin','z-index'];
@@ -177,7 +182,7 @@
     }
     const controller = {shell, active:true, update(scrolled, refresh = false) {
       if (!controller.active) return;
-      if (!shell.getClientRects().length) { controller.destroy(); return; }
+      if (!headerCanRun(shell,target)) { controller.destroy(); return; }
       if (refresh || lastState === null) {
         release(); overlay?.refresh(); headerAnimation?.cancel(); logoAnimation?.cancel();
         applySkin(false); normalHeight = target.getBoundingClientRect().height;
