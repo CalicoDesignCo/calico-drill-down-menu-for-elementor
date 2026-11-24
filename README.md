@@ -52,7 +52,9 @@ Enable Content → Header & logos → Enable header controls. Choose This widget
 
 Choose Sticky header and Start sticking, a top offset, Transparent before scroll and Shrink logo and header after scroll. Under Style → Header bar & logo sizes, set before/after backgrounds, minimum bar heights, padding, logo widths/maximum heights and transition duration, with responsive sizes. Content and padding can make a bar taller than its minimum. Set the shared Switch after threshold under Style → Scroll colors, even if menu color changes are off. Existing Elementor Sticky owns positioning when enabled; use one sticky controller per container. Sticky positioning is suppressed in the Elementor editor. Reduced-motion preferences disable transitions.
 
-Header controls are off by default. Transparent background clears the controlled element's background, not separate ancestor backgrounds or Elementor background overlays. Configure overlay positioning in your header template when the header should sit over page content. To control your separate Image or Site Logo widget, set its Advanced → CSS ID to **header-logo**. In the menu, choose **Content → Header & logos → Logo location → Existing logo by CSS ID**, then enter **header-logo** or **#header-logo**. Choose **Header to control → Elementor header container** to shrink the entire bar. Keep both widgets in the same header. Before/after images are optional overrides; an empty Before field retains the original image. Existing links and alt text are preserved. No logo is inserted inside the menu in this mode.
+Header controls are off by default. Transparent background clears the controlled element's background, not separate ancestor backgrounds or Elementor background overlays. Enable **Content → Header & logos → Overlay page content** to overlap the hero. Choose **Elementor header container** to overlay the whole Theme Builder header. Overlay is off by default and suppressed in the editor; verify it in the front-end preview. Elementor sticky placeholders stay inside the overlaid header, so they do not reserve a blank strip above the hero. To control your separate Image or Site Logo widget, set its Advanced → CSS ID to **header-logo**. In the menu, choose **Content → Header & logos → Logo location → Existing logo by CSS ID**, then enter **header-logo** or **#header-logo**. Choose **Header to control → Elementor header container** to shrink the entire bar. Keep both widgets in the same header. Before/after images are optional overrides; an empty Before field retains the original image. Existing links and alt text are preserved. No logo is inserted inside the menu in this mode.
+
+Menu color changes now fade using **Style → Scroll colors → Color transition (ms)**. Header background blending follows **Style → Header bar & logo sizes → Header transition (ms)** together with the bar/logo shrink. Set a duration to zero for immediate changes. Reduced-motion preferences disable these transitions.
 
 ## Verification and limits
 
@@ -63,6 +65,13 @@ PHP 7.4/8.3 isolated render checks and local Chrome interaction checks cover fiv
 Deactivate the plugin to stop its widget and updater. WordPress menus, media, and Elementor settings remain owned by WordPress/Elementor; the plugin creates no custom tables. Reinstall the prior saved package if rollback is needed.
 
 ## Changelog
+
+### 1.5.0
+
+- Add Overlay page content for a header that sits over the hero, including with Elementor Sticky.
+- Add adjustable menu normal/hover/scroll color fades and retain synchronized header background/bar/logo transitions.
+- Skip initialization of sticky spacer clones, restore overlay styles on cleanup and keep editor content in normal flow.
+
 
 ### 1.4.1
 
