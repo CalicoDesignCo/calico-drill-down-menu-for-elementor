@@ -56,6 +56,8 @@ Header controls are off by default. Transparent background clears the controlled
 
 Menu color changes now fade using **Style → Scroll colors → Color transition (ms)**. Header background blending follows **Style → Header bar & logo sizes → Header transition (ms)** together with the bar/logo shrink. Set a duration to zero for immediate changes. Reduced-motion preferences disable these transitions.
 
+**Run header effects when menu is hidden** defaults **on** under Content → Header & logos. Select a visible **Elementor header container** (or ancestor selector) and an external logo by CSS ID. Header overlay, backgrounds and logo sizing keep working even if Elementor hides this menu widget on tablet/mobile. Your separate hamburger/popup remains separate, and the menu stays hidden. Turn the option off to stop effects when hidden. A fully hidden header template and Elementor sticky spacer clones never take control.
+
 ## Verification and limits
 
 PHP 7.4/8.3 isolated render checks and local Chrome interaction checks cover five menu levels, parent-label navigation, View links, focus, keyboard behavior, multiple instances, mobile breakpoint boundaries, never-collapse layouts, and the Elementor replacement-widget hook. Updater tests cover stable release parsing, pinned assets, version comparisons, caching, and safe failures. These checks do not establish compatibility with every theme, screen reader, or physical device.
@@ -65,6 +67,13 @@ PHP 7.4/8.3 isolated render checks and local Chrome interaction checks cover fiv
 Deactivate the plugin to stop its widget and updater. WordPress menus, media, and Elementor settings remain owned by WordPress/Elementor; the plugin creates no custom tables. Reinstall the prior saved package if rollback is needed.
 
 ## Changelog
+
+### 1.6.0
+
+- Default-on header effects when the navigation widget is hidden by responsive settings, with an off switch.
+- Control the visible header container/external logo independently of hidden navigation.
+- Prefer visible sibling controllers and avoid fully hidden header templates and sticky spacer clones.
+
 
 ### 1.5.1
 

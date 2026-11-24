@@ -4,7 +4,7 @@ Tags: elementor, navigation, menu, dropdown, icons
 Requires at least: 6.5
 Requires PHP: 7.4
 Requires Plugins: elementor
-Stable tag: 1.5.1
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,7 +44,7 @@ Enable Content > Header & logos > Enable header controls. Choose This widget for
 
 Choose Sticky header and Start sticking, a top offset, Transparent before scroll and Shrink logo and header after scroll. Under Style > Header bar & logo sizes, set before/after backgrounds, minimum bar heights, padding, logo widths/maximum heights and transition duration, with responsive sizes. Content and padding can make a bar taller than its minimum. Set the shared Switch after threshold under Style > Scroll colors, even if menu color changes are off. Existing Elementor Sticky owns positioning when enabled; use one sticky controller per container. Sticky positioning is suppressed in the Elementor editor. Reduced-motion preferences disable transitions.
 
-Header controls are off by default. Transparent background clears the controlled element's background, not separate ancestor backgrounds or Elementor background overlays. Enable Overlay page content to place the header over the hero rather than reserving space above it. Choose Elementor header container to overlay the whole Theme Builder header. Overlay is off by default and suppressed in the Elementor editor; use the front-end preview to verify it. Elementor sticky placeholders remain inside the overlaid header and do not push the page content down. Container controls preserve other header widgets. To control a separate Image or Site Logo widget, choose Logo location > Existing logo by CSS ID. Set Advanced > CSS ID on that logo widget to header-logo, then enter header-logo (or #header-logo) in Existing logo CSS ID. Choose Elementor header container to shrink the entire header together. The logo must be in the same header; its link and alt text are preserved. Optional before/after images replace the existing image in place. Leave Before empty to retain the original top-state image. A missing ID leaves the existing image untouched and adds no duplicate.
+Run header effects when menu is hidden defaults on under Header & logos. With Header to control set to a visible Elementor header container or ancestor selector, overlay, background changes, sticky behavior and an external logo keep working when the menu widget is hidden by responsive settings. The menu remains hidden. A separate mobile icon/popup stays separate. Turn this option off to stop effects while the widget is hidden. Fully hidden header templates and sticky spacer clones do not control anything. Header controls are off by default. Transparent background clears the controlled element's background, not separate ancestor backgrounds or Elementor background overlays. Enable Overlay page content to place the header over the hero rather than reserving space above it. Choose Elementor header container to overlay the whole Theme Builder header. Overlay is off by default and suppressed in the Elementor editor; use the front-end preview to verify it. Elementor sticky placeholders remain inside the overlaid header and do not push the page content down. Container controls preserve other header widgets. To control a separate Image or Site Logo widget, choose Logo location > Existing logo by CSS ID. Set Advanced > CSS ID on that logo widget to header-logo, then enter header-logo (or #header-logo) in Existing logo CSS ID. Choose Elementor header container to shrink the entire header together. The logo must be in the same header; its link and alt text are preserved. Optional before/after images replace the existing image in place. Leave Before empty to retain the original top-state image. A missing ID leaves the existing image untouched and adds no duplicate.
 
 
 = How do I use different colors over a transparent header? =
@@ -70,6 +70,12 @@ No. Hierarchy, labels, order, destinations, new-tab targets, and link relationsh
 Yes. WordPress checks stable releases from https://github.com/CalicoDesignCo/calico-drill-down-menu-for-elementor without a GitHub token. Use Dashboard > Updates > Check again. Drafts, prereleases and downgrades are ignored. Upload this updater-enabled release manually once if you installed local 0.1.0 or 0.2.0. Automatic-update scheduling stays under the administrator's control.
 
 == Changelog ==
+
+= 1.6.0 =
+* Keep header effects running when Elementor hides the menu widget on mobile/tablet. New Run header effects when menu is hidden option defaults on.
+* Control the visible header container and external logo while leaving the navigation hidden. Opt out to stop effects when hidden.
+* Prefer a visible sibling menu controller, skip fully hidden header templates and retain sticky-spacer exclusions.
+
 
 = 1.5.1 =
 * Fix transparent header backgrounds jumping to solid when Elementor also applies a CSS background transition.
