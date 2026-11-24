@@ -3,6 +3,127 @@
   'use strict';
   // DOM attributes survive Elementor's popup clones; event listeners do not.
   const instances = new WeakMap();
+  const headerOwners = new WeakMap();
+  function createHeader(shell) {
+    if (!shell || !shell.getClientRects().length) return null;
+    const bar = shell.querySelector('.cdn-header-bar');
+    let target = bar;
+    if (shell.dataset.headerScope === 'selector' && shell.dataset.headerSelector) {
+      try { target = shell.closest(shell.dataset.headerSelector) || bar; } catch (_) { target = bar; }
+      if (target === document.body || target === document.documentElement) target = bar;
+    } else if (shell.dataset.headerScope === 'container') {
+      const location = shell.closest('.elementor-location-header');
+      let ancestor = shell.parentElement;
+      while (ancestor && ancestor !== location && ancestor !== document.body) {
+        if (ancestor.matches('.e-con,.elementor-section')) { target = ancestor; if (!location) break; }
+        ancestor = ancestor.parentElement;
+      }
+    }
+    const owner = headerOwners.get(target);
+    if (owner) {
+      if (owner.shell.getClientRects().length) return null;
+      owner.destroy();
+    }
+    const properties = ['background-color','background-image','min-height','padding','position','top','left','width','margin','z-index'];
+    // Restore a copied header's original inline styles before binding its clone.
+    if (target.dataset.cdnHeaderStyle) {
+      try {
+        const copied = JSON.parse(target.dataset.cdnHeaderStyle);
+        properties.forEach(p => { if (copied[p]) target.style.setProperty(p, copied[p][0], copied[p][1]); });
+      } catch (_) { /* A stale marker must not stop navigation. */ }
+      target.classList.remove('cdn-controlled-header','cdn-header-fixed');
+      delete target.dataset.cdnHeaderStyle;
+      if (target.previousElementSibling?.matches('.cdn-header-spacer')) target.previousElementSibling.remove();
+    }
+    const saved = new Map();
+    function set(p, value, priority = '') {
+      if (!saved.has(p)) saved.set(p, [target.style.getPropertyValue(p), target.style.getPropertyPriority(p)]);
+      if (target.style.getPropertyValue(p) !== value || target.style.getPropertyPriority(p) !== priority) target.style.setProperty(p, value, priority);
+      target.dataset.cdnHeaderStyle = JSON.stringify(Object.fromEntries(saved));
+    }
+    function restore(p) {
+      if (!saved.has(p)) return;
+      const [value, priority] = saved.get(p);
+      if (value) target.style.setProperty(p, value, priority); else target.style.removeProperty(p);
+      saved.delete(p);
+      target.dataset.cdnHeaderStyle = JSON.stringify(Object.fromEntries(saved));
+    }
+    const spacer = document.createElement('div');
+    spacer.className = 'cdn-header-spacer'; spacer.setAttribute('aria-hidden','true'); spacer.style.display = 'none';
+    target.before(spacer);
+    target.classList.add('cdn-controlled-header');
+    const logo = shell.querySelector('.cdn-header-logo');
+    let fixed = false, lastState = null, normalHeight = 0, headerAnimation, logoAnimation;
+    const fixedProperties = ['position','top','left','width','margin','z-index'];
+    function release() {
+      if (!fixed) return;
+      fixedProperties.forEach(restore); spacer.style.display = 'none';
+      target.classList.remove('cdn-header-fixed'); fixed = false;
+    }
+    function skin(scrolled) {
+      const css = getComputedStyle(shell);
+      const phase = scrolled && shell.dataset.shrink === 'yes' ? 'after' : 'before';
+      shell.classList.toggle('cdn-scrolled', scrolled);
+      const background = !scrolled && shell.dataset.transparent === 'yes' ? 'transparent' : css.getPropertyValue('--cdn-header-bg-' + (scrolled ? 'after' : 'before')).trim() || '#FFFFFF';
+      set('background-color', background); set('background-image','none');
+      set('min-height', css.getPropertyValue('--cdn-header-height-' + phase).trim() || (phase === 'after' ? '64px' : '96px'));
+      set('padding', css.getPropertyValue('--cdn-header-padding-' + phase).trim() || (phase === 'after' ? '8px 24px' : '16px 24px'));
+    }
+    function snapshot() {
+      const css = getComputedStyle(target);
+      return {height: target.getBoundingClientRect().height + 'px', minHeight: css.minHeight, padding: css.padding, backgroundColor: css.backgroundColor};
+    }
+    function logoSize() { const r = logo?.getBoundingClientRect(); return r ? {width:r.width+'px',height:r.height+'px'} : null; }
+    function sticky(scrolled) {
+      let nativeSticky = target.classList.contains('elementor-sticky') || !!target.closest('.elementor-sticky');
+      try { nativeSticky ||= !!JSON.parse(target.dataset.settings || '{}').sticky; } catch (_) {}
+      const editor = window.elementorFrontend?.isEditMode?.() || document.body.classList.contains('elementor-editor-active');
+      const enabled = shell.dataset.headerSticky === 'yes' && !editor && !nativeSticky;
+      const admin = document.getElementById('wpadminbar')?.getBoundingClientRect();
+      const offset = Math.max(0,Number(shell.dataset.headerOffset)||0) + (admin && admin.top <= 0 ? Math.max(0,admin.bottom) : 0);
+      const anchor = (fixed ? spacer : target).getBoundingClientRect();
+      const shouldFix = enabled && window.scrollY > 0 && (shell.dataset.stickyStart === 'threshold' ? scrolled : anchor.top <= offset);
+      if (!shouldFix) { release(); return; }
+      if (!fixed) {
+        const css = getComputedStyle(target);
+        spacer.style.cssText = `display:block;box-sizing:border-box;flex:0 0 auto;width:${anchor.width}px;height:${normalHeight}px;margin:${css.margin}`;
+        fixed = true; target.classList.add('cdn-header-fixed');
+        set('position','fixed','important'); set('margin','0px','important'); set('z-index',String(Number(shell.dataset.headerZ)||1000),'important');
+      }
+      const box = spacer.getBoundingClientRect();
+      set('top',offset+'px','important'); set('left',box.left+'px','important'); set('width',box.width+'px','important');
+    }
+    const controller = {shell, active:true, update(scrolled, refresh = false) {
+      if (!controller.active) return;
+      if (!shell.getClientRects().length) { controller.destroy(); return; }
+      if (refresh || lastState === null) {
+        release(); headerAnimation?.cancel(); logoAnimation?.cancel();
+        skin(false); normalHeight = target.getBoundingClientRect().height;
+        skin(scrolled); lastState = scrolled;
+      } else if (scrolled !== lastState) {
+        const before = snapshot(), oldLogo = logoSize();
+        headerAnimation?.cancel(); logoAnimation?.cancel();
+        skin(scrolled);
+        const after = snapshot(), newLogo = logoSize();
+        const parsed = parseFloat(getComputedStyle(shell).getPropertyValue('--cdn-header-duration'));
+        const duration = Number.isFinite(parsed) ? Math.max(0,Math.min(1500,parsed)) : 250;
+        if (duration && !matchMedia('(prefers-reduced-motion: reduce)').matches && target.animate) {
+          headerAnimation = target.animate([before,after],{duration,easing:'ease'});
+          if (logo && oldLogo && newLogo) logoAnimation = logo.animate([oldLogo,newLogo],{duration,easing:'ease'});
+        }
+        lastState = scrolled;
+      }
+      sticky(scrolled);
+    }, destroy() {
+      if (!controller.active) return;
+      controller.active = false; headerAnimation?.cancel(); logoAnimation?.cancel(); release();
+      Array.from(saved.keys()).forEach(restore);
+      target.classList.remove('cdn-controlled-header'); delete target.dataset.cdnHeaderStyle;
+      spacer.remove(); headerOwners.delete(target);
+    }};
+    headerOwners.set(target,controller);
+    return controller;
+  }
   function init(nav) {
     if (!nav.isConnected || instances.has(nav)) return;
     nav.dataset.cdnReady = 'true';
@@ -16,16 +137,27 @@
     const controller = new AbortController();
     const listen = (el, event, fn, options = {}) => el.addEventListener(event, fn, {...options, signal: controller.signal});
     let scrollFrame = 0;
+    const headerShell = nav.closest('.cdn-header-shell');
+    let headerController;
     function updateScrollColors() {
       const threshold = Math.max(0, Math.min(100000, Number(nav.dataset.scrollThreshold) || 0));
       const position = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
-      nav.classList.toggle('cdn-scrolled', nav.dataset.scrollColors === 'yes' && position > 0 && position >= threshold);
+      const scrolled = position > 0 && position >= threshold;
+      nav.classList.toggle('cdn-scrolled', (nav.dataset.scrollColors === 'yes' || !!headerShell) && scrolled);
+      if (headerShell) {
+        if (!headerController?.active) headerController = createHeader(headerShell);
+        if (headerController) headerController.update(scrolled);
+        else headerShell.classList.toggle('cdn-scrolled',scrolled);
+      }
     }
-    if (nav.dataset.scrollColors === 'yes') {
+    if (nav.dataset.scrollColors === 'yes' || headerShell) {
       listen(window, 'scroll', () => {
         if (!scrollFrame) scrollFrame = requestAnimationFrame(() => { scrollFrame = 0; updateScrollColors(); });
       }, {passive: true});
       listen(window, 'pageshow', updateScrollColors);
+      headerShell?.querySelectorAll('.cdn-header-logo img').forEach(img => {
+        listen(img, 'load', () => { updateScrollColors(); headerController?.update(nav.classList.contains('cdn-scrolled'),true); });
+      });
     }
     function animateDropdown(state, opening, finish = () => {}) {
       state.animation?.cancel();
@@ -197,13 +329,14 @@
       }
       states.forEach(state => resize(state));
     }
-    listen(window, 'resize', responsive);
+    listen(window, 'resize', () => { responsive(); headerController?.update(nav.classList.contains('cdn-scrolled'),true); });
     const observer = new ResizeObserver(responsive);
     observer.observe(root);
     states.forEach(state => state.panels.forEach(panel => observer.observe(panel)));
     instances.set(nav, {refresh: responsive, destroy() {
       controller.abort(); observer.disconnect();
       cancelAnimationFrame(scrollFrame);
+      headerController?.destroy();
       states.forEach(state => { state.animation?.cancel(); close(state); state.animation?.cancel(); state.li.classList.remove('cdn-closing'); });
       instances.delete(nav); delete nav.dataset.cdnReady;
     }});
