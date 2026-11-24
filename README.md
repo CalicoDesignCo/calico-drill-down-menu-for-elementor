@@ -66,6 +66,12 @@ Deactivate the plugin to stop its widget and updater. WordPress menus, media, an
 
 ## Changelog
 
+### 1.5.1
+
+- Fix transparent-to-solid header background fades conflicting with Elementor background transitions.
+- Preserve the configured Header transition duration and restore existing CSS transition settings after reading animation endpoints.
+
+
 ### 1.5.0
 
 - Add Overlay page content for a header that sits over the hero, including with Elementor Sticky.
